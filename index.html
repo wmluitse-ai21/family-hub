@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Family Hub</title>
+<title>Familie Hub</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -27,24 +27,20 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .week-nav button{background:none;border:1px solid var(--border);border-radius:7px;padding:5px 9px;cursor:pointer;color:var(--text);font-size:12px}
 .week-nav button:hover{background:var(--border)}
 .week-label{font-size:12px;font-weight:500;min-width:140px;text-align:center}
-
-/* Person login buttons */
-.person-logins{display:flex;gap:6px;flex-wrap:wrap}
-.person-login-btn{display:flex;align-items:center;gap:4px;font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-weight:600;transition:all .15s}
-.person-login-btn.connected{border-width:1.5px}
-.person-login-btn .status-dot{width:6px;height:6px;border-radius:50%;background:#ccc;flex-shrink:0}
-.person-login-btn.connected .status-dot{background:#1d9e75}
-
+.sync-btn{display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 12px;border-radius:20px;border:1.5px solid #ea4335;background:var(--card);cursor:pointer;color:#ea4335;font-weight:600}
+.sync-btn.connected{border-color:#1d9e75;color:#1d9e75;background:var(--pepijn-light)}
 .wake-indicator{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);padding:4px 8px;border-radius:6px;border:1px solid var(--border)}
 .wake-dot{width:7px;height:7px;border-radius:50%;background:#ccc}
 .wake-dot.active{background:#1d9e75}
+.sync-indicator{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.sync-indicator i{font-size:12px}
+.sync-indicator.syncing{color:var(--abel)}
 
 .main{flex:1;display:flex;overflow:hidden}
 .calendar-area{flex:1;overflow:auto;padding:12px}
 .sidebar{width:220px;border-left:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 .sidebar-inner{flex:1;overflow-y:auto;padding:12px}
 .sidebar h3{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:5px;color:var(--text)}
-.sidebar h3 i{font-size:14px;color:var(--muted)}
 
 .family-avatars{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .avatar-chip{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 4px;border-radius:20px;font-size:11px;font-weight:600}
@@ -61,7 +57,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .row-label .name{font-size:10px;font-weight:600}
 .person-row{display:grid;grid-template-columns:72px repeat(7,1fr);border-bottom:1px solid var(--border);min-height:64px}
 .person-row:last-child{border-bottom:none}
-.day-cell{border-right:.5px solid var(--border);padding:4px;min-height:64px;display:flex;flex-direction:column;gap:2px;cursor:pointer;transition:background .1s;position:relative}
+.day-cell{border-right:.5px solid var(--border);padding:4px;min-height:64px;display:flex;flex-direction:column;gap:2px;cursor:pointer;transition:background .1s}
 .day-cell:hover{background:#fdf5ec}
 .day-cell:last-child{border-right:none}
 .day-cell.today-col{background:rgba(186,117,23,.04)}
@@ -81,7 +77,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .cook-badge{display:inline-flex;align-items:center;gap:3px;border-radius:10px;padding:1px 5px;font-size:9px;font-weight:600}
 
 .day-view-grid{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.day-col-headers{display:grid;border-bottom:1px solid var(--border)}
 .day-col-hdr{padding:10px 8px;text-align:center;font-size:11px;font-weight:700;border-right:.5px solid var(--border)}
 .day-col-hdr:last-child{border-right:none}
 .day-view-row{display:grid;border-bottom:.5px solid var(--border);min-height:60px}
@@ -127,17 +122,9 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .btn-save{padding:6px 14px;border-radius:7px;border:none;background:var(--abel);color:#fff;cursor:pointer;font-size:12px;font-weight:600}
 .btn-delete{padding:6px 14px;border-radius:7px;border:none;background:#fee2e2;color:#991f1f;cursor:pointer;font-size:12px;margin-right:auto}
 
-/* Login modal */
-.login-modal{background:var(--card);border-radius:14px;padding:24px;width:340px;border:1px solid var(--border);text-align:center}
-.login-modal h2{font-size:16px;font-weight:600;margin-bottom:6px}
-.login-modal p{font-size:12px;color:var(--muted);margin-bottom:18px}
-.login-person-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;transition:all .15s}
-.login-person-btn:hover{border-color:currentColor}
-.login-person-btn .dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
-.login-person-btn .connected-tag{margin-left:auto;font-size:10px;background:#e1f5ee;color:#085041;padding:2px 7px;border-radius:10px}
-
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#3a2e24;color:#fff;padding:9px 18px;border-radius:18px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
 .toast.show{opacity:1}
+.loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:13px;gap:8px}
 
 .person-color-mom{color:var(--mom)}.bg-mom{background:var(--mom-light);color:var(--mom-dark)}
 .person-color-dad{color:var(--dad)}.bg-dad{background:var(--dad-light);color:var(--dad-dark)}
@@ -148,9 +135,9 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 <body>
 <div class="app">
   <header>
-    <div class="logo"><i class="ti ti-home-heart"></i><h1>Family Hub</h1></div>
+    <div class="logo"><i class="ti ti-home-heart"></i><h1>Familie Hub</h1></div>
     <div class="view-tabs">
-              <button class="view-tab active" onclick="setView('week')">Week</button>
+      <button class="view-tab active" onclick="setView('week')">Week</button>
       <button class="view-tab" onclick="setView('day')">Dag</button>
       <button class="view-tab" onclick="setView('month')">Maand</button>
     </div>
@@ -158,51 +145,41 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
       <button onclick="changePeriod(-1)"><i class="ti ti-chevron-left"></i></button>
       <span class="week-label" id="periodLabel"></span>
       <button onclick="changePeriod(1)"><i class="ti ti-chevron-right"></i></button>
-      <button onclick="goToday()" style="font-size:11px;padding:5px 9px">Today</button>
+      <button onclick="goToday()" style="font-size:11px;padding:5px 9px">Vandaag</button>
     </div>
-    <div class="person-logins" id="personLogins"></div>
-    <div class="wake-indicator" id="wakeIndicator">
-      <div class="wake-dot" id="wakeDot"></div>
-      <span id="wakeLabel">Screen on</span>
-    </div>
+    <button class="sync-btn" id="gcalBtn" onclick="connectGoogle()">
+      <i class="ti ti-calendar"></i> <span id="gcalBtnLabel">Google Agenda</span>
+    </button>
+    <div class="sync-indicator" id="syncIndicator"><i class="ti ti-cloud"></i><span id="syncLabel">Gesynchroniseerd</span></div>
+    <div class="wake-indicator"><div class="wake-dot" id="wakeDot"></div><span>Scherm aan</span></div>
   </header>
 
   <div class="main">
-    <div class="calendar-area" id="calArea">
+    <div class="calendar-area">
       <div class="family-avatars">
-        <div class="avatar-chip" style="background:var(--mom-light)"><div class="avatar-dot" style="background:var(--mom)">M</div><span style="color:var(--mom-dark)">Mom</span></div>
-        <div class="avatar-chip" style="background:var(--dad-light)"><div class="avatar-dot" style="background:var(--dad)">D</div><span style="color:var(--dad-dark)">Dad</span></div>
+        <div class="avatar-chip" style="background:var(--mom-light)"><div class="avatar-dot" style="background:var(--mom)">M</div><span style="color:var(--mom-dark)">Mama</span></div>
+        <div class="avatar-chip" style="background:var(--dad-light)"><div class="avatar-dot" style="background:var(--dad)">D</div><span style="color:var(--dad-dark)">Papa</span></div>
         <div class="avatar-chip" style="background:var(--pepijn-light)"><div class="avatar-dot" style="background:var(--pepijn)">P</div><span style="color:var(--pepijn-dark)">Pepijn</span></div>
         <div class="avatar-chip" style="background:var(--abel-light)"><div class="avatar-dot" style="background:var(--abel)">A</div><span style="color:var(--abel-dark)">Abel</span></div>
       </div>
-      <div id="calBody"></div>
+      <div id="calBody"><div class="loading"><i class="ti ti-loader ti-spin"></i> Laden...</div></div>
     </div>
     <div class="sidebar">
       <div class="sidebar-inner">
-        <h3><i class="ti ti-checklist"></i> Tasks this week</h3>
+        <h3><i class="ti ti-checklist"></i> Taken deze week</h3>
         <div id="taskList"></div>
       </div>
       <div style="padding:10px 12px;border-top:1px solid var(--border)">
-        <p style="font-size:10px;color:var(--muted);line-height:1.6">Click any cell to add an event. Click dinner to set meal &amp; cook. Click a name button to connect Google Calendar.</p>
+        <p style="font-size:10px;color:var(--muted);line-height:1.6">Klik op een cel om een afspraak toe te voegen. Klik op het diner om de maaltijd en kok in te stellen.</p>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- Person login picker modal -->
-<div class="modal-overlay" id="loginModal">
-  <div class="login-modal">
-    <h2>🔗 Google Agenda koppelen</h2>
-    <p>Wie logt in? Die persoon wordt doorgestuurd naar Google om toestemming te geven.</p>
-    <div id="loginPersonList"></div>
-    <button class="btn-cancel" style="width:100%;margin-top:4px" onclick="closeModal('loginModal')">Annuleren</button>
   </div>
 </div>
 
 <!-- Gebeurtenis modal -->
 <div class="modal-overlay" id="eventModal">
   <div class="modal">
-    <h2 id="evModalTitle"><i class="ti ti-calendar-plus"></i> Gebeurtenis toevoegen</h2>
+    <h2 id="evModalTitle"><i class="ti ti-calendar-plus"></i> Afspraak toevoegen</h2>
     <label>Persoon</label>
     <select id="evPerson">
       <option value="mom">Mama</option><option value="dad">Papa</option>
@@ -265,8 +242,13 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 <script>
 const PERSONS=['mom','dad','pepijn','abel'];
 const NAMES={mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
-const EMAILS={mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
-const INITIALS={mom:'M',dad:'D',pepijn:'P',abel:'A'};
+const CALIDS={
+  mom:'w.m.luitse@gmail.com',
+  dad:'t.h.rodenburg@gmail.com',
+  pepijn:'pepijn.simen.rodenburg@gmail.com',
+  abel:'abel.david.rodenburg@gmail.com'
+};
+const LOGIN_EMAIL='w.m.luitse@gmail.com';
 const DAYS=['Ma','Di','Wo','Do','Vr','Za','Zo'];
 const GC_CLIENT_ID='627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
 const GC_SCOPE='https://www.googleapis.com/auth/calendar.events';
@@ -275,165 +257,166 @@ const REDIRECT_URI='https://wmluitse-ai21.github.io/family-hub/';
 let view='week',weekOffset=0,dayOffset=0,monthOffset=0;
 let events={},dinners={},tasks={mom:[],dad:[],pepijn:[],abel:[]};
 let editingEvent=null,editingDinnerKey=null,editingCell=null;
-let wakeLock=null;
-// tokens per person: {mom: {access_token, expires_at}, ...}
-let tokens={};
-let pendingLoginPerson=null;
+let gcalToken=null,gcalExpiry=0;
+let syncPollTimer=null;
 
 // ── Wake Lock ──────────────────────────────────────────────────────────────
 async function requestWakeLock(){
   try{
     if('wakeLock' in navigator){
-      wakeLock=await navigator.wakeLock.request('screen');
+      const wl=await navigator.wakeLock.request('screen');
       document.getElementById('wakeDot').classList.add('active');
-      wakeLock.addEventListener('release',()=>document.getElementById('wakeDot').classList.remove('active'));
+      wl.addEventListener('release',()=>document.getElementById('wakeDot').classList.remove('active'));
     }
   }catch(e){}
 }
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')requestWakeLock()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){requestWakeLock();loadShared();}});
 
-// ── Storage ────────────────────────────────────────────────────────────────
-async function loadData(){
+// ── Shared storage (syncs across devices) ─────────────────────────────────
+async function loadShared(){
+  setSyncLabel('Laden…',true);
   try{
-    const r=await window.storage.get('familyhub-v3');
-    if(r){const d=JSON.parse(r.value);events=d.events||{};dinners=d.dinners||{};tasks=d.tasks||{mom:[],dad:[],pepijn:[],abel:[]};tokens=d.tokens||{};}
+    const [re,rd,rt,rg]=await Promise.all([
+      window.storage.get('fh-events',true),
+      window.storage.get('fh-dinners',true),
+      window.storage.get('fh-tasks',true),
+      window.storage.get('fh-gcal',false)
+    ]);
+    if(re)events=JSON.parse(re.value);
+    if(rd)dinners=JSON.parse(rd.value);
+    if(rt)tasks=JSON.parse(rt.value);
+    if(rg){const g=JSON.parse(rg.value);gcalToken=g.token||null;gcalExpiry=g.expiry||0;}
+    if(!tasks.mom)tasks.mom=[];if(!tasks.dad)tasks.dad=[];
+    if(!tasks.pepijn)tasks.pepijn=[];if(!tasks.abel)tasks.abel=[];
   }catch(e){}
-  seedDefaults();
-  renderLoginButtons();
+  setSyncLabel('Gesynchroniseerd',false);
+  updateGcalBtn();
   render();
-  // fetch gcal for all connected persons
-  for(const p of PERSONS){if(isConnected(p))fetchGoogleEvents(p);}
+  if(isGcalConnected())fetchAllGcalEvents();
 }
-async function saveData(){
-  try{await window.storage.set('familyhub-v3',JSON.stringify({events,dinners,tasks,tokens}));}catch(e){}
+
+async function saveShared(){
+  setSyncLabel('Opslaan…',true);
+  try{
+    await Promise.all([
+      window.storage.set('fh-events',JSON.stringify(events),true),
+      window.storage.set('fh-dinners',JSON.stringify(dinners),true),
+      window.storage.set('fh-tasks',JSON.stringify(tasks),true)
+    ]);
+  }catch(e){}
+  setSyncLabel('Gesynchroniseerd',false);
   render();
 }
 
-function isConnected(p){return !!(tokens[p]&&tokens[p].access_token&&tokens[p].expires_at>Date.now())}
-
-function seedDefaults(){
-  const w=getWeekDates(0);const fmt=d=>d.toISOString().slice(0,10);
-  [{p:'mom',d:0,t:'Yoga class',ti:'09:00'},{p:'dad',d:0,t:'Work meeting',ti:'10:30'},{p:'pepijn',d:1,t:'Football practice',ti:'16:00'},{p:'abel',d:2,t:'Art class',ti:'14:00'},{p:'mom',d:3,t:'Book club',ti:'19:00'},{p:'dad',d:4,t:'Gym',ti:'07:00'}].forEach(ev=>{
-    const k=fmt(w[ev.d]);if(!events[k])events[k]=[];
-    if(!events[k].find(e=>e.title===ev.t&&e.person===ev.p))events[k].push({id:uid(),person:ev.p,title:ev.t,time:ev.ti,synced:false});
-  });
-  [[0,'Pasta carbonara','mom'],[1,'Chicken stir fry','dad'],[2,'Homemade pizza',''],[4,'Fish & chips','pepijn'],[6,'Sunday roast','dad']].forEach(([di,meal,cook])=>{
-    const k=fmt(w[di]);if(!dinners[k])dinners[k]={meal,cook};
-  });
-  if(!tasks.mom.length)tasks.mom=[{id:uid(),text:'Call dentist',done:false},{id:uid(),text:'Grocery shopping',done:true}];
-  if(!tasks.dad.length)tasks.dad=[{id:uid(),text:'Fix bike',done:false}];
-  if(!tasks.pepijn.length)tasks.pepijn=[{id:uid(),text:'Homework math',done:false}];
-  if(!tasks.abel.length)tasks.abel=[{id:uid(),text:'Clean room',done:false}];
-}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
-
-// ── OAuth ──────────────────────────────────────────────────────────────────
-function openLoginModal(){
-  renderLoginPersonList();
-  document.getElementById('loginModal').classList.add('open');
+async function saveGcalToken(){
+  try{await window.storage.set('fh-gcal',JSON.stringify({token:gcalToken,expiry:gcalExpiry}),false);}catch(e){}
 }
 
-function renderLoginPersonList(){
-  document.getElementById('loginPersonList').innerHTML=PERSONS.map(p=>`
-    <button class="login-person-btn person-color-${p}" onclick="startLogin('${p}')" style="border-color:var(--${p})">
-      <div class="dot" style="background:var(--${p})">${INITIALS[p]}</div>
-      <div style="text-align:left">
-        <div>${NAMES[p]}</div>
-        <div style="font-size:10px;font-weight:400;color:var(--muted)">${EMAILS[p]}</div>
-      </div>
-      ${isConnected(p)?`<span class="connected-tag">✓ Connected</span>`:''}
-    </button>`).join('');
+function setSyncLabel(txt,busy){
+  document.getElementById('syncLabel').textContent=txt;
+  document.getElementById('syncIndicator').classList.toggle('syncing',busy);
 }
 
-function renderLoginButtons(){
-  document.getElementById('personLogins').innerHTML=`
-    <button onclick="openLoginModal()" style="display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-weight:600">
-      <i class="ti ti-calendar"></i> Google Calendar
-      <span style="background:#e1f5ee;color:#085041;border-radius:10px;padding:1px 7px;font-size:10px">${PERSONS.filter(isConnected).length}/4</span>
-    </button>`;
+// ── Poll for changes every 30s ─────────────────────────────────────────────
+function startPolling(){
+  if(syncPollTimer)clearInterval(syncPollTimer);
+  syncPollTimer=setInterval(()=>loadShared(),30000);
 }
 
-function startLogin(person){
-  pendingLoginPerson=person;
-  sessionStorage.setItem('pendingLoginPerson',person);
-  closeModal('loginModal');
+// ── Google Calendar ────────────────────────────────────────────────────────
+function isGcalConnected(){return !!(gcalToken&&gcalExpiry>Date.now())}
+
+function updateGcalBtn(){
+  const btn=document.getElementById('gcalBtn');
+  const lbl=document.getElementById('gcalBtnLabel');
+  if(isGcalConnected()){
+    btn.classList.add('connected');
+    lbl.textContent='Agenda ✓';
+  }else{
+    btn.classList.remove('connected');
+    lbl.textContent='Google Agenda';
+  }
+}
+
+function connectGoogle(){
+  if(isGcalConnected()){toast('Google Agenda is al gekoppeld');return;}
+  sessionStorage.setItem('gcal_pending','1');
   const params=new URLSearchParams({
     client_id:GC_CLIENT_ID,
     redirect_uri:REDIRECT_URI,
     response_type:'token',
     scope:GC_SCOPE,
     prompt:'consent',
-    login_hint:EMAILS[person]
+    login_hint:LOGIN_EMAIL
   });
   window.location.href='https://accounts.google.com/o/oauth2/auth?'+params.toString();
 }
 
 function handleOAuthCallback(){
   const hash=window.location.hash;
-  if(!hash)return;
+  if(!hash||!sessionStorage.getItem('gcal_pending'))return;
   const params=new URLSearchParams(hash.replace('#',''));
   const token=params.get('access_token');
   if(!token)return;
-  const person=sessionStorage.getItem('pendingLoginPerson');
-  if(!person)return;
-  sessionStorage.removeItem('pendingLoginPerson');
-  tokens[person]={access_token:token,expires_at:Date.now()+(parseInt(params.get('expires_in')||3600)*1000)};
+  sessionStorage.removeItem('gcal_pending');
+  gcalToken=token;
+  gcalExpiry=Date.now()+(parseInt(params.get('expires_in')||3600)*1000);
   window.history.replaceState(null,null,window.location.pathname);
-  saveData();
-  renderLoginButtons();
-  toast(`✅ ${NAMES[person]}'s Google Calendar connected!`);
-  fetchGoogleEvents(person);
+  saveGcalToken();
+  updateGcalBtn();
+  toast('✅ Google Agenda gekoppeld!');
+  fetchAllGcalEvents();
 }
 
-async function fetchGoogleEvents(person){
-  if(!isConnected(person))return;
+async function fetchAllGcalEvents(){
+  if(!isGcalConnected())return;
   const dates=getWeekDates(weekOffset);
   const timeMin=new Date(dates[0]);timeMin.setHours(0,0,0,0);
   const timeMax=new Date(dates[6]);timeMax.setHours(23,59,59,999);
-  try{
-    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(EMAILS[person])}/events?timeMin=${timeMin.toISOString()}&timeMax=${timeMax.toISOString()}&singleEvents=true&orderBy=startTime`,{
-      headers:{'Authorization':'Bearer '+tokens[person].access_token}
-    });
-    if(!r.ok){if(r.status===401){tokens[person]={};saveData();renderLoginButtons();}return;}
-    const data=await r.json();
-    // remove old gcal events for this person in this week
-    dates.forEach(d=>{
-      const k=iso(d);
-      if(events[k])events[k]=events[k].filter(e=>!(e.person===person&&e.fromGcal));
-    });
-    (data.items||[]).forEach(item=>{
-      const dateStr=(item.start.date||item.start.dateTime||'').slice(0,10);
-      if(!dateStr)return;
-      if(!events[dateStr])events[dateStr]=[];
-      events[dateStr].push({
-        id:uid(),gcalId:item.id,person,fromGcal:true,
-        title:item.summary||'(no title)',
-        time:item.start.dateTime?item.start.dateTime.slice(11,16):'',
-        synced:true
+  // clear old gcal events for this week
+  dates.forEach(d=>{
+    const k=iso(d);
+    if(events[k])events[k]=events[k].filter(e=>!e.fromGcal);
+  });
+  for(const p of PERSONS){
+    try{
+      const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[p])}/events?timeMin=${timeMin.toISOString()}&timeMax=${timeMax.toISOString()}&singleEvents=true&orderBy=startTime`,{
+        headers:{'Authorization':'Bearer '+gcalToken}
       });
-    });
-    saveData();render();
-  }catch(e){}
+      if(r.status===401){gcalToken=null;gcalExpiry=0;saveGcalToken();updateGcalBtn();toast('Google sessie verlopen — opnieuw inloggen');return;}
+      if(!r.ok)continue;
+      const data=await r.json();
+      (data.items||[]).forEach(item=>{
+        const dateStr=(item.start.date||item.start.dateTime||'').slice(0,10);
+        if(!dateStr)return;
+        if(!events[dateStr])events[dateStr]=[];
+        if(!events[dateStr].find(e=>e.gcalId===item.id)){
+          events[dateStr].push({id:uid(),gcalId:item.id,person:p,fromGcal:true,
+            title:item.summary||'(geen titel)',
+            time:item.start.dateTime?item.start.dateTime.slice(11,16):'',synced:true});
+        }
+      });
+    }catch(e){}
+  }
+  await saveShared();
 }
 
-async function pushToGoogleCalendar(ev,dateKey){
-  const person=ev.person;
-  if(!isConnected(person))return;
+async function pushToGcal(ev,dateKey){
+  if(!isGcalConnected())return;
   const body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
   if(ev.time){
     const[hh,mm]=(ev.time.split('–')[0]||ev.time).trim().split(':').map(Number);
     const pad=n=>String(n).padStart(2,'0');
     body.start={dateTime:`${dateKey}T${pad(hh)}:${pad(mm||0)}:00`};
     body.end={dateTime:`${dateKey}T${pad(hh+1)}:${pad(mm||0)}:00`};
-    delete body.start.date;delete body.end.date;
   }
   try{
-    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(EMAILS[person])}/events`,{
+    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[ev.person])}/events`,{
       method:'POST',
-      headers:{'Authorization':'Bearer '+tokens[person].access_token,'Content-Type':'application/json'},
+      headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
-    if(r.ok){ev.synced=true;toast(`Pushed to ${NAMES[person]}'s Google Calendar`);}
+    if(r.ok){ev.synced=true;toast(`Naar Google Agenda van ${NAMES[ev.person]} gestuurd`);}
   }catch(e){}
 }
 
@@ -455,6 +438,7 @@ function getMonthDates(off){
 }
 function iso(d){return d.toISOString().slice(0,10)}
 function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
 
 // ── Views ──────────────────────────────────────────────────────────────────
 function setView(v){
@@ -467,9 +451,14 @@ function changePeriod(d){
   else if(view==='day')dayOffset+=d;
   else monthOffset+=d;
   render();
-  if(view==='week')PERSONS.forEach(p=>{if(isConnected(p))fetchGoogleEvents(p)});
+  if(view==='week'&&isGcalConnected())fetchAllGcalEvents();
 }
 function goToday(){weekOffset=0;dayOffset=0;monthOffset=0;render()}
+function goToDay(isoStr){
+  const target=new Date(isoStr),today=new Date();
+  dayOffset=Math.round((target-today)/(1000*60*60*24));
+  setView('day');
+}
 
 function render(){
   if(view==='week')renderWeek();
@@ -481,7 +470,8 @@ function render(){
 function renderWeek(){
   const dates=getWeekDates(weekOffset);
   const opts={month:'short',day:'numeric'};
-  document.getElementById('periodLabel').textContent=dates[0].toLocaleDateString('en-GB',opts)+' – '+dates[6].toLocaleDateString('en-GB',opts);
+  document.getElementById('periodLabel').textContent=
+    dates[0].toLocaleDateString('nl-NL',opts)+' – '+dates[6].toLocaleDateString('nl-NL',opts);
   document.getElementById('calBody').innerHTML=`
     <div class="grid-wrapper">
       <div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)">
@@ -494,7 +484,7 @@ function renderWeek(){
           ${dates.map(d=>{
             const k=iso(d);const evs=(events[k]||[]).filter(e=>e.person===p);
             return `<div class="day-cell${isToday(d)?' today-col':''}" onclick="openEventModal('${p}','${k}',event)">
-              ${evs.map(ev=>`<div class="event-chip bg-${p}${ev.fromGcal?' gcal':''}" onclick="editEvent(event,'${ev.id}','${k}')" title="${ev.title}${ev.fromGcal?' (Google Calendar)':''}">
+              ${evs.map(ev=>`<div class="event-chip bg-${p}${ev.fromGcal?' gcal':''}" onclick="editEvent(event,'${ev.id}','${k}')" title="${ev.title}">
                 ${ev.fromGcal?`<i class='ti ti-calendar' style='font-size:8px'></i>`:''}${ev.time?`<i class='ti ti-clock'></i>`:''}${trunc(ev.title,14)}
               </div>`).join('')}
               <button class="add-btn"><i class="ti ti-plus"></i></button>
@@ -502,11 +492,11 @@ function renderWeek(){
           }).join('')}
         </div>`).join('')}
       <div class="dinner-row">
-        <div class="dinner-label"><i class="ti ti-soup"></i> Dinner</div>
+        <div class="dinner-label"><i class="ti ti-soup"></i> Diner</div>
         ${dates.map(d=>{
           const k=iso(d),dn=dinners[k]||{};
           return `<div class="dinner-cell${isToday(d)?' today-col':''}" onclick="openDinnerModal('${k}')">
-            ${dn.meal?`<span class="meal">${trunc(dn.meal,16)}</span>`:`<span class="no-meal">Add meal…</span>`}
+            ${dn.meal?`<span class="meal">${trunc(dn.meal,16)}</span>`:`<span class="no-meal">Maaltijd toevoegen…</span>`}
             ${dn.cook?`<div class="cook-badge bg-${dn.cook}"><i class='ti ti-chef-hat'></i>${NAMES[dn.cook]}</div>`:''}
           </div>`;
         }).join('')}
@@ -516,16 +506,20 @@ function renderWeek(){
 
 function renderDay(){
   const d=getDayDate(dayOffset);const k=iso(d);
-  document.getElementById('periodLabel').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('periodLabel').textContent=
+    d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
   const dn=dinners[k]||{};
   document.getElementById('calBody').innerHTML=`
     <div class="day-view-grid">
-      <div class="day-col-headers" style="display:grid;grid-template-columns:80px repeat(4,1fr)">
+      <div style="display:grid;grid-template-columns:80px repeat(4,1fr);border-bottom:1px solid var(--border)">
         <div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>
-        ${PERSONS.map(p=>`<div class="day-col-hdr person-color-${p}" style="background:var(--${p}-light)">${NAMES[p]}${isConnected(p)?` <i class='ti ti-calendar-check' style='font-size:10px'></i>`:''}</div>`).join('')}
+        ${PERSONS.map(p=>`<div class="day-col-hdr person-color-${p}" style="background:var(--${p}-light)">${NAMES[p]}</div>`).join('')}
       </div>
       <div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px">
-        <div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center"><i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i><span style="font-size:9px;color:var(--muted);margin-top:2px">Events</span></div>
+        <div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center">
+          <i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i>
+          <span style="font-size:9px;color:var(--muted);margin-top:2px">Afspraken</span>
+        </div>
         ${PERSONS.map(p=>{
           const evs=(events[k]||[]).filter(e=>e.person===p);
           return `<div class="day-view-cell" onclick="openEventModal('${p}','${k}',event)">
@@ -539,8 +533,8 @@ function renderDay(){
       <div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none">
         <div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div>
         <div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal('${k}')">
-          ${dn.meal?`<div style="font-size:13px;font-weight:500">${dn.meal}</div>`:`<div style="font-size:11px;color:var(--muted);font-style:italic">Tap to set dinner…</div>`}
-          ${dn.cook?`<div class="cook-badge bg-${dn.cook}" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class='ti ti-chef-hat'></i> ${NAMES[dn.cook]} cooks tonight</div>`:''}
+          ${dn.meal?`<div style="font-size:13px;font-weight:500">${dn.meal}</div>`:`<div style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</div>`}
+          ${dn.cook?`<div class="cook-badge bg-${dn.cook}" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class='ti ti-chef-hat'></i> ${NAMES[dn.cook]} kookt vanavond</div>`:''}
         </div>
       </div>
     </div>`;
@@ -548,7 +542,8 @@ function renderDay(){
 
 function renderMonth(){
   const{dates,month}=getMonthDates(monthOffset);
-  document.getElementById('periodLabel').textContent=month.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  document.getElementById('periodLabel').textContent=
+    month.toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
   document.getElementById('calBody').innerHTML=`
     <div class="month-grid">
       <div class="month-weekdays">${DAYS.map(d=>`<div class="month-weekday">${d}</div>`).join('')}</div>
@@ -566,12 +561,6 @@ function renderMonth(){
     </div>`;
 }
 
-function goToDay(isoStr){
-  const target=new Date(isoStr),today=new Date();
-  dayOffset=Math.round((target-today)/(1000*60*60*24));
-  setView('day');
-}
-
 function renderTasks(){
   document.getElementById('taskList').innerHTML=PERSONS.map(p=>{
     const pt=tasks[p]||[];
@@ -581,38 +570,38 @@ function renderTasks(){
         <div class="task-check${t.done?' done':''}">${t.done?`<i class='ti ti-check'></i>`:''}</div>
         <span class="task-text${t.done?' done':''}">${t.text}</span>
       </div>`).join('')}
-      <button class="add-task-btn" onclick="openTaskModal('${p}')"><i class='ti ti-plus'></i> Add</button>
+      <button class="add-task-btn" onclick="openTaskModal('${p}')"><i class='ti ti-plus'></i> Toevoegen</button>
     </div>`;
   }).join('');
 }
 
-// ── Event modal ────────────────────────────────────────────────────────────
+// ── Modals ─────────────────────────────────────────────────────────────────
 function openEventModal(person,dateKey,e){
   if(e)e.stopPropagation();
   editingEvent=null;editingCell={person,dateKey};
   document.getElementById('evPerson').value=person;
   document.getElementById('evTitle').value='';
   document.getElementById('evTime').value='';
-  document.getElementById('evSync').value=isConnected(person)?'yes':'no';
+  document.getElementById('evSync').value=isGcalConnected()?'yes':'no';
   document.getElementById('evDeleteBtn').style.display='none';
-  document.getElementById('evModalTitle').innerHTML=`<i class='ti ti-calendar-plus'></i> Add event`;
+  document.getElementById('evModalTitle').innerHTML=`<i class='ti ti-calendar-plus'></i> Afspraak toevoegen`;
   document.getElementById('eventModal').classList.add('open');
   setTimeout(()=>document.getElementById('evTitle').focus(),100);
 }
 function editEvent(e,evId,dateKey){
   e.stopPropagation();
   const ev=(events[dateKey]||[]).find(x=>x.id===evId);if(!ev)return;
-  if(ev.fromGcal){toast('This event is from Google Calendar — edit it there directly');return;}
+  if(ev.fromGcal){toast('Dit is een Google Agenda afspraak — bewerk het daar');return;}
   editingEvent={evId,dateKey};editingCell=null;
   document.getElementById('evPerson').value=ev.person;
   document.getElementById('evTitle').value=ev.title;
   document.getElementById('evTime').value=ev.time||'';
   document.getElementById('evSync').value='no';
   document.getElementById('evDeleteBtn').style.display='block';
-  document.getElementById('evModalTitle').innerHTML=`<i class='ti ti-pencil'></i> Edit event`;
+  document.getElementById('evModalTitle').innerHTML=`<i class='ti ti-pencil'></i> Afspraak bewerken`;
   document.getElementById('eventModal').classList.add('open');
 }
-function saveEvent(){
+async function saveEvent(){
   const person=document.getElementById('evPerson').value;
   const title=document.getElementById('evTitle').value.trim();
   const time=document.getElementById('evTime').value.trim();
@@ -626,16 +615,19 @@ function saveEvent(){
     if(!events[k])events[k]=[];
     const newEv={id:uid(),person,title,time,synced:false};
     events[k].push(newEv);
-    if(doSync)pushToGoogleCalendar(newEv,k);
+    if(doSync)pushToGcal(newEv,k);
   }
-  saveData();closeModal('eventModal');toast('Gebeurtenis opgeslagen');
+  closeModal('eventModal');
+  await saveShared();
+  toast('Afspraak opgeslagen');
 }
-function deleteEvent(){
+async function deleteEvent(){
   const{evId,dateKey}=editingEvent;
   events[dateKey]=(events[dateKey]||[]).filter(x=>x.id!==evId);
-  saveData();closeModal('eventModal');toast('Gebeurtenis verwijderd');
+  closeModal('eventModal');
+  await saveShared();
+  toast('Afspraak verwijderd');
 }
-
 function openDinnerModal(key){
   editingDinnerKey=key;
   const dn=dinners[key]||{};
@@ -644,35 +636,40 @@ function openDinnerModal(key){
   document.getElementById('dinnerModal').classList.add('open');
   setTimeout(()=>document.getElementById('dinnerTitle').focus(),100);
 }
-function saveDinner(){
+async function saveDinner(){
   const meal=document.getElementById('dinnerTitle').value.trim();
   const cook=document.getElementById('dinnerCook').value;
   if(meal)dinners[editingDinnerKey]={meal,cook};
   else delete dinners[editingDinnerKey];
-  saveData();closeModal('dinnerModal');toast('Diner bijgewerkt');
+  closeModal('dinnerModal');
+  await saveShared();
+  toast('Diner bijgewerkt');
 }
-function clearDinner(){
+async function clearDinner(){
   delete dinners[editingDinnerKey];
-  saveData();closeModal('dinnerModal');toast('Diner verwijderd');
+  closeModal('dinnerModal');
+  await saveShared();
+  toast('Diner verwijderd');
 }
-
 function openTaskModal(person){
   document.getElementById('taskPerson').value=person;
   document.getElementById('taskTitle').value='';
   document.getElementById('taskModal').classList.add('open');
   setTimeout(()=>document.getElementById('taskTitle').focus(),100);
 }
-function saveTask(){
+async function saveTask(){
   const person=document.getElementById('taskPerson').value;
   const text=document.getElementById('taskTitle').value.trim();
   if(!text)return;
   if(!tasks[person])tasks[person]=[];
   tasks[person].push({id:uid(),text,done:false});
-  saveData();closeModal('taskModal');toast('Taak toegevoegd');
+  closeModal('taskModal');
+  await saveShared();
+  toast('Taak toegevoegd');
 }
-function toggleTask(person,id){
+async function toggleTask(person,id){
   const t=(tasks[person]||[]).find(x=>x.id===id);
-  if(t){t.done=!t.done;saveData();}
+  if(t){t.done=!t.done;await saveShared();}
 }
 
 function closeModal(id){
@@ -700,7 +697,8 @@ function toast(msg){
 
 requestWakeLock();
 handleOAuthCallback();
-loadData();
+loadShared();
+startPolling();
 </script>
 </body>
 </html>
