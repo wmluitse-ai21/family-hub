@@ -589,7 +589,7 @@ function connectCal(type){
     if(googleConnected){toast('Google Calendar already connected');return;}
     const params=new URLSearchParams({
       client_id:GC_CLIENT_ID,
-      redirect_uri:'https://wmluitse-ai21.github.io/family-hub',
+      redirect_uri:'https://wmluitse-ai21.github.io/family-hub/',
       response_type:'token',
       scope:GC_SCOPE,
       prompt:'consent',
