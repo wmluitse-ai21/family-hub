@@ -33,17 +33,14 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .wake-dot{width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block;margin-right:3px}
 .wake-dot.active{background:#1d9e75}
 .sync-status{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:3px}
-
 .main{flex:1;display:flex;overflow:hidden}
 .calendar-area{flex:1;overflow:auto;padding:12px}
 .sidebar{width:215px;border-left:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 .sidebar-inner{flex:1;overflow-y:auto;padding:12px}
 .sidebar h3{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:5px}
-
 .family-avatars{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .avatar-chip{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 4px;border-radius:20px;font-size:11px;font-weight:600}
 .avatar-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
-
 .grid-wrapper{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .day-headers{display:grid;grid-template-columns:72px repeat(7,1fr);border-bottom:1px solid var(--border)}
 .day-header{padding:8px 6px;text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
@@ -63,7 +60,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .event-chip.gcal{border-left:2px solid rgba(0,0,0,.2)}
 .add-btn{opacity:0;font-size:14px;color:var(--muted);cursor:pointer;margin-top:auto;align-self:flex-end;border:none;background:none;padding:1px 3px;line-height:1}
 .day-cell:hover .add-btn{opacity:1}
-
 .dinner-row{display:grid;grid-template-columns:72px repeat(7,1fr);background:#fff9f0;border-top:2px solid var(--border)}
 .dinner-label{padding:6px 8px;border-right:1px solid var(--border);display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--abel-dark)}
 .dinner-cell{border-right:.5px solid var(--border);padding:5px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:52px}
@@ -73,8 +69,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .meal{font-size:10px;color:var(--text);font-weight:500;line-height:1.3}
 .no-meal{font-size:9px;color:var(--muted);font-style:italic}
 .cook-badge{display:inline-flex;align-items:center;gap:3px;border-radius:10px;padding:1px 5px;font-size:9px;font-weight:600}
-
-/* Day view */
 .day-view-grid{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .day-col-hdr{padding:10px 8px;text-align:center;font-size:11px;font-weight:700;border-right:.5px solid var(--border)}
 .day-col-hdr:last-child{border-right:none}
@@ -83,8 +77,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .day-view-cell{border-right:.5px solid var(--border);padding:5px;display:flex;flex-direction:column;gap:3px;cursor:pointer;min-height:60px}
 .day-view-cell:hover{background:#fdf5ec}
 .day-view-cell:last-child{border-right:none}
-
-/* Month view */
 .month-grid{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .month-weekdays{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)}
 .month-weekday{padding:7px;text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
@@ -97,8 +89,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .month-cell.today-col .month-day-num{color:var(--abel);background:var(--abel-light);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .month-ev-chip{font-size:8px;border-radius:3px;padding:1px 4px;font-weight:500;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:1px}
 .month-dinner{font-size:8px;color:var(--abel-dark);background:var(--abel-light);border-radius:3px;padding:1px 4px;margin-top:2px;display:flex;align-items:center;gap:2px}
-
-/* Tasks */
 .task-person{margin-bottom:10px}
 .task-person-hdr{display:flex;align-items:center;gap:5px;margin-bottom:4px;font-size:10px;font-weight:700}
 .task-item{display:flex;align-items:flex-start;gap:5px;margin-bottom:3px;padding:3px 5px;border-radius:5px;cursor:pointer}
@@ -109,8 +99,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .task-text{font-size:10px;line-height:1.4}
 .task-text.done{text-decoration:line-through;color:var(--muted)}
 .add-task-btn{font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;padding:2px 3px;display:flex;align-items:center;gap:2px}
-
-/* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,46,36,.35);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--card);border-radius:14px;padding:18px;width:320px;border:1px solid var(--border)}
@@ -123,10 +111,8 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .btn-save{padding:6px 14px;border-radius:7px;border:none;background:var(--abel);color:#fff;cursor:pointer;font-size:12px;font-weight:600}
 .btn-delete{padding:6px 14px;border-radius:7px;border:none;background:#fee2e2;color:#991f1f;cursor:pointer;font-size:12px;margin-right:auto}
 .gcal-badge{font-size:9px;background:var(--dad-light);color:var(--dad-dark);border-radius:8px;padding:2px 7px;margin-left:auto}
-
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#3a2e24;color:#fff;padding:9px 18px;border-radius:18px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
 .toast.show{opacity:1}
-
 .person-color-mom{color:var(--mom)}.bg-mom{background:var(--mom-light);color:var(--mom-dark)}
 .person-color-dad{color:var(--dad)}.bg-dad{background:var(--dad-light);color:var(--dad-dark)}
 .person-color-pepijn{color:var(--pepijn)}.bg-pepijn{background:var(--pepijn-light);color:var(--pepijn-dark)}
@@ -154,7 +140,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
     <button class="hdr-btn refresh" onclick="manualRefresh()"><i class="ti ti-refresh"></i> Vernieuwen</button>
     <div class="sync-status"><div class="wake-dot" id="wakeDot"></div><span id="syncLbl">Laden…</span></div>
   </header>
-
   <div class="main">
     <div class="calendar-area">
       <div class="family-avatars">
@@ -241,41 +226,39 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 <div class="toast" id="toast"></div>
 
 <script>
-const PERSONS=['mom','dad','pepijn','abel'];
-const NAMES={mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
-const CALIDS={mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
-const LOGIN_HINT='w.m.luitse@gmail.com';
-const DAYS=['Ma','Di','Wo','Do','Vr','Za','Zo'];
-const GC_CLIENT_ID='627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
-const GC_SCOPE='https://www.googleapis.com/auth/calendar.events';
-const REDIRECT_URI='https://wmluitse-ai21.github.io/family-hub/';
+var PERSONS=['mom','dad','pepijn','abel'];
+var NAMES={mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
+var CALIDS={mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
+var LOGIN_HINT='w.m.luitse@gmail.com';
+var DAYS=['Ma','Di','Wo','Do','Vr','Za','Zo'];
+var GC_CLIENT_ID='627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
+var GC_SCOPE='https://www.googleapis.com/auth/calendar.events';
+var REDIRECT_URI='https://wmluitse-ai21.github.io/family-hub/';
 
-let view='week',weekOffset=0,dayOffset=0,monthOffset=0;
-let events={},dinners={},tasks={mom:[],dad:[],pepijn:[],abel:[]};
-let editingEvent=null,editingDinnerKey=null,editingCell=null;
-let gcalToken=null,gcalExpiry=0;
-let pollTimer=null;
+var view='week',weekOffset=0,dayOffset=0,monthOffset=0;
+var events={},dinners={},tasks={mom:[],dad:[],pepijn:[],abel:[]};
+var editingEvent=null,editingDinnerKey=null,editingCell=null;
+var gcalToken=null,gcalExpiry=0;
+var pollTimer=null;
 
-// ── Wake Lock ──────────────────────────────────────────────────────────────
+// Wake Lock
 async function requestWakeLock(){
-  try{if('wakeLock' in navigator){const wl=await navigator.wakeLock.request('screen');document.getElementById('wakeDot').classList.add('active');wl.addEventListener('release',()=>document.getElementById('wakeDot').classList.remove('active'));}}catch(e){}
+  try{if('wakeLock' in navigator){var wl=await navigator.wakeLock.request('screen');document.getElementById('wakeDot').classList.add('active');wl.addEventListener('release',function(){document.getElementById('wakeDot').classList.remove('active');});}}catch(e){}
 }
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){requestWakeLock();loadShared();}});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){requestWakeLock();loadShared();}});
 
-// ── Shared storage ─────────────────────────────────────────────────────────
+// Shared storage
 async function loadShared(){
   setSyncLbl('Laden…');
   try{
-    const[re,rd,rt,rg]=await Promise.all([
-      window.storage.get('fh-events',true),
-      window.storage.get('fh-dinners',true),
-      window.storage.get('fh-tasks',true),
-      window.storage.get('fh-gcal',false)
-    ]);
+    var re=await window.storage.get('fh-events',true);
+    var rd=await window.storage.get('fh-dinners',true);
+    var rt=await window.storage.get('fh-tasks',true);
+    var rg=await window.storage.get('fh-gcal',false);
     if(re)events=JSON.parse(re.value);
     if(rd)dinners=JSON.parse(rd.value);
-    if(rt){const t=JSON.parse(rt.value);tasks={mom:t.mom||[],dad:t.dad||[],pepijn:t.pepijn||[],abel:t.abel||[]};}
-    if(rg){const g=JSON.parse(rg.value);gcalToken=g.token||null;gcalExpiry=g.expiry||0;}
+    if(rt){var t=JSON.parse(rt.value);tasks={mom:t.mom||[],dad:t.dad||[],pepijn:t.pepijn||[],abel:t.abel||[]};}
+    if(rg){var g=JSON.parse(rg.value);gcalToken=g.token||null;gcalExpiry=g.expiry||0;}
   }catch(e){}
   updateGcalBtn();
   setSyncLbl('Gesynchroniseerd');
@@ -285,38 +268,36 @@ async function loadShared(){
 async function saveShared(){
   setSyncLbl('Opslaan…');
   try{
-    await Promise.all([
-      window.storage.set('fh-events',JSON.stringify(events),true),
-      window.storage.set('fh-dinners',JSON.stringify(dinners),true),
-      window.storage.set('fh-tasks',JSON.stringify(tasks),true)
-    ]);
+    await window.storage.set('fh-events',JSON.stringify(events),true);
+    await window.storage.set('fh-dinners',JSON.stringify(dinners),true);
+    await window.storage.set('fh-tasks',JSON.stringify(tasks),true);
   }catch(e){}
   setSyncLbl('Gesynchroniseerd');
   render();
 }
 
 function setSyncLbl(t){document.getElementById('syncLbl').textContent=t;}
-function startPolling(){if(pollTimer)clearInterval(pollTimer);pollTimer=setInterval(()=>loadShared(),20000);}
+function startPolling(){if(pollTimer)clearInterval(pollTimer);pollTimer=setInterval(function(){loadShared();},20000);}
 async function manualRefresh(){setSyncLbl('Vernieuwen…');await loadShared();if(isGcalConnected())await fetchAllGcalEvents();toast('Vernieuwd ✓');}
 
-// ── Google Calendar OAuth ──────────────────────────────────────────────────
-function isGcalConnected(){return !!(gcalToken&&gcalExpiry>Date.now())}
+// Google Calendar
+function isGcalConnected(){return !!(gcalToken&&gcalExpiry>Date.now());}
 function updateGcalBtn(){
-  const btn=document.getElementById('gcalBtn'),lbl=document.getElementById('gcalLbl');
+  var btn=document.getElementById('gcalBtn'),lbl=document.getElementById('gcalLbl');
   if(isGcalConnected()){btn.classList.add('connected');lbl.textContent='Agenda ✓';}
   else{btn.classList.remove('connected');lbl.textContent='Google Agenda';}
 }
 function connectGoogle(){
   if(isGcalConnected()){toast('Google Agenda is al gekoppeld');return;}
   sessionStorage.setItem('gcal_pending','1');
-  const p=new URLSearchParams({client_id:GC_CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'token',scope:GC_SCOPE,prompt:'consent',login_hint:LOGIN_HINT});
+  var p=new URLSearchParams({client_id:GC_CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'token',scope:GC_SCOPE,prompt:'consent',login_hint:LOGIN_HINT});
   window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
 }
 function handleOAuthCallback(){
-  const hash=window.location.hash;
+  var hash=window.location.hash;
   if(!hash||!sessionStorage.getItem('gcal_pending'))return;
-  const p=new URLSearchParams(hash.replace('#',''));
-  const token=p.get('access_token');if(!token)return;
+  var p=new URLSearchParams(hash.replace('#',''));
+  var token=p.get('access_token');if(!token)return;
   sessionStorage.removeItem('gcal_pending');
   gcalToken=token;gcalExpiry=Date.now()+(parseInt(p.get('expires_in')||3600)*1000);
   window.history.replaceState(null,null,window.location.pathname);
@@ -325,165 +306,167 @@ function handleOAuthCallback(){
   fetchAllGcalEvents();
 }
 
-// ── Fetch ALL Google Calendar events (full year) ───────────────────────────
+// Fetch ALL Google Calendar events
 async function fetchAllGcalEvents(){
   if(!isGcalConnected())return;
   setSyncLbl('Agenda ophalen…');
-  // 3 months back, 9 months forward = ~1 year
-  const timeMin=new Date();timeMin.setMonth(timeMin.getMonth()-3);timeMin.setHours(0,0,0,0);
-  const timeMax=new Date();timeMax.setMonth(timeMax.getMonth()+9);timeMax.setHours(23,59,59,999);
+  var timeMin=new Date();timeMin.setMonth(timeMin.getMonth()-3);timeMin.setHours(0,0,0,0);
+  var timeMax=new Date();timeMax.setMonth(timeMax.getMonth()+9);timeMax.setHours(23,59,59,999);
 
-  // Remove all old gcal events in this range
-  const cur=new Date(timeMin);
+  // Clear old gcal events
+  var cur=new Date(timeMin);
   while(cur<=timeMax){
-    const k=iso(cur);
-    if(events[k])events[k]=events[k].filter(e=>!e.fromGcal);
+    var k=iso(cur);
+    if(events[k])events[k]=events[k].filter(function(e){return !e.fromGcal;});
     cur.setDate(cur.getDate()+1);
   }
 
-  for(const p of PERSONS){
-    let pageToken=null;
+  // Loop over each person using index to avoid closure issues
+  for(var pi=0;pi<PERSONS.length;pi++){
+    var person=PERSONS[pi];
+    var calId=CALIDS[person];
+    var pageToken=null;
     do{
       try{
-        const params=new URLSearchParams({
-          timeMin:timeMin.toISOString(),timeMax:timeMax.toISOString(),
-          singleEvents:'true',orderBy:'startTime',maxResults:'2500'
+        var params=new URLSearchParams({
+          timeMin:timeMin.toISOString(),
+          timeMax:timeMax.toISOString(),
+          singleEvents:'true',
+          orderBy:'startTime',
+          maxResults:'2500'
         });
         if(pageToken)params.set('pageToken',pageToken);
-        const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[p])}/events?${params}`,{
-          headers:{'Authorization':'Bearer '+gcalToken}
-        });
-        if(r.status===401){gcalToken=null;gcalExpiry=0;try{window.storage.set('fh-gcal',JSON.stringify({token:null,expiry:0}),false);}catch(e){}updateGcalBtn();toast('Google sessie verlopen — opnieuw inloggen');return;}
+        var url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events?'+params.toString();
+        var r=await fetch(url,{headers:{'Authorization':'Bearer '+gcalToken}});
+        if(r.status===401){
+          gcalToken=null;gcalExpiry=0;
+          try{window.storage.set('fh-gcal',JSON.stringify({token:null,expiry:0}),false);}catch(ex){}
+          updateGcalBtn();toast('Google sessie verlopen — opnieuw inloggen');return;
+        }
         if(!r.ok){pageToken=null;break;}
-        const data=await r.json();
-        (data.items||[]).forEach(item=>{
-          // Handle both all-day (date) and timed (dateTime) events
-          // For dateTime with timezone offset, extract local date correctly
-          let dateStr='';
+        var data=await r.json();
+        var thisPerson=person;
+        var thisCalId=calId;
+        var items=data.items||[];
+        for(var ii=0;ii<items.length;ii++){
+          var item=items[ii];
+          var dateStr='';
           if(item.start.date){
-            dateStr=item.start.date; // all-day: already YYYY-MM-DD
-          } else if(item.start.dateTime){
-            // Parse local date from dateTime, respecting timezone offset
-            const dt=item.start.dateTime;
-            // If offset present (e.g. 2026-06-15T16:00:00+02:00), use local date part
-            // by converting to the local date in that timezone
-            const localDate=new Date(dt);
-            // Use the date from the dateTime string directly if it has offset
-            if(dt.includes('+') || (dt.includes('-') && dt.lastIndexOf('-')>7)){
-              dateStr=dt.slice(0,10);
-            } else {
-              dateStr=localDate.toISOString().slice(0,10);
-            }
+            dateStr=item.start.date;
+          }else if(item.start.dateTime){
+            var dt=item.start.dateTime;
+            dateStr=dt.slice(0,10);
           }
-          if(!dateStr)return;
+          if(!dateStr)continue;
           if(!events[dateStr])events[dateStr]=[];
-          if(!events[dateStr].find(e=>e.gcalId===item.id)){
-            let timeStr='';
-            if(item.start.dateTime){
-              // Extract HH:MM from local time in the dateTime string
-              const dt=item.start.dateTime;
-              const tMatch=dt.match(/T(\d{2}:\d{2})/);
-              if(tMatch)timeStr=tMatch[1];
-            }
-            let endTimeStr='';
-            if(item.end&&item.end.dateTime){
-              const et=item.end.dateTime;
-              const tMatch=et.match(/T(\d{2}:\d{2})/);
-              if(tMatch)endTimeStr=tMatch[1];
-            }
+          var alreadyExists=false;
+          for(var ei=0;ei<events[dateStr].length;ei++){
+            if(events[dateStr][ei].gcalId===item.id&&events[dateStr][ei].person===thisPerson){alreadyExists=true;break;}
+          }
+          if(!alreadyExists){
+            var timeStr='';
+            if(item.start.dateTime){var tm=item.start.dateTime.match(/T(\d{2}:\d{2})/);if(tm)timeStr=tm[1];}
+            var endTimeStr='';
+            if(item.end&&item.end.dateTime){var tm2=item.end.dateTime.match(/T(\d{2}:\d{2})/);if(tm2)endTimeStr=tm2[1];}
             events[dateStr].push({
-              id:uid(),gcalId:item.id,gcalCalId:CALIDS[p],person:p,fromGcal:true,
+              id:uid(),
+              gcalId:item.id,
+              gcalCalId:thisCalId,
+              person:thisPerson,
+              fromGcal:true,
               title:item.summary||'(geen titel)',
               time:timeStr,
               endTime:endTimeStr,
               synced:true
             });
           }
-        });
+        }
         pageToken=data.nextPageToken||null;
-      }catch(e){pageToken=null;}
+      }catch(ex){pageToken=null;}
     }while(pageToken);
   }
   await saveShared();
   setSyncLbl('Gesynchroniseerd');
 }
 
-// ── Push new event to Google Calendar ─────────────────────────────────────
+// Push new event to Google Calendar
 async function pushToGcal(ev,dateKey){
   if(!isGcalConnected())return null;
-  const body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
+  var body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
   if(ev.time){
-    const[hh,mm]=(ev.time.split('–')[0]||ev.time).trim().split(':').map(Number);
-    const pad=n=>String(n).padStart(2,'0');
-    const endH=ev.endTime?parseInt(ev.endTime.split(':')[0]):hh+1;
-    const endM=ev.endTime?parseInt(ev.endTime.split(':')[1]):mm||0;
-    body.start={dateTime:`${dateKey}T${pad(hh)}:${pad(mm||0)}:00`};
-    body.end={dateTime:`${dateKey}T${pad(endH)}:${pad(endM)}:00`};
+    var parts=(ev.time.split('–')[0]||ev.time).trim().split(':');
+    var hh=parseInt(parts[0]),mm=parseInt(parts[1])||0;
+    var pad=function(n){return String(n).padStart(2,'0');};
+    var endH=ev.endTime?parseInt(ev.endTime.split(':')[0]):hh+1;
+    var endM=ev.endTime?parseInt(ev.endTime.split(':')[1]):mm;
+    body.start={dateTime:dateKey+'T'+pad(hh)+':'+pad(mm)+':00'};
+    body.end={dateTime:dateKey+'T'+pad(endH)+':'+pad(endM)+':00'};
   }
   try{
-    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[ev.person])}/events`,{
+    var r=await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALIDS[ev.person])+'/events',{
       method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
-    if(r.ok){const d=await r.json();return d.id;}
+    if(r.ok){var d=await r.json();return d.id;}
   }catch(e){}
   return null;
 }
 
-// ── Update existing Google Calendar event ─────────────────────────────────
+// Update existing Google Calendar event
 async function updateGcalEvent(ev,dateKey){
   if(!isGcalConnected()||!ev.gcalId)return;
-  const body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
+  var body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
   if(ev.time){
-    const[hh,mm]=(ev.time.split('–')[0]||ev.time).trim().split(':').map(Number);
-    const pad=n=>String(n).padStart(2,'0');
-    const endH=ev.endTime?parseInt(ev.endTime.split(':')[0]):hh+1;
-    const endM=ev.endTime?parseInt(ev.endTime.split(':')[1]):mm||0;
-    body.start={dateTime:`${dateKey}T${pad(hh)}:${pad(mm||0)}:00`};
-    body.end={dateTime:`${dateKey}T${pad(endH)}:${pad(endM)}:00`};
+    var parts=(ev.time.split('–')[0]||ev.time).trim().split(':');
+    var hh=parseInt(parts[0]),mm=parseInt(parts[1])||0;
+    var pad=function(n){return String(n).padStart(2,'0');};
+    var endH=ev.endTime?parseInt(ev.endTime.split(':')[0]):hh+1;
+    var endM=ev.endTime?parseInt(ev.endTime.split(':')[1]):mm;
+    body.start={dateTime:dateKey+'T'+pad(hh)+':'+pad(mm)+':00'};
+    body.end={dateTime:dateKey+'T'+pad(endH)+':'+pad(endM)+':00'};
   }
   try{
-    await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[ev.person])}/events/${ev.gcalId}`,{
+    await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALIDS[ev.person])+'/events/'+ev.gcalId,{
       method:'PATCH',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
   }catch(e){}
 }
 
-// ── Delete Google Calendar event ───────────────────────────────────────────
+// Delete Google Calendar event
 async function deleteGcalEvent(ev){
   if(!isGcalConnected()||!ev.gcalId)return;
   try{
-    await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[ev.person])}/events/${ev.gcalId}`,{
+    await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALIDS[ev.person])+'/events/'+ev.gcalId,{
       method:'DELETE',headers:{'Authorization':'Bearer '+gcalToken}
     });
   }catch(e){}
 }
 
-// ── Date helpers ───────────────────────────────────────────────────────────
+// Date helpers
 function getWeekDates(off){
-  const now=new Date(),day=now.getDay(),mon=new Date(now);
+  var now=new Date(),day=now.getDay(),mon=new Date(now);
   mon.setDate(now.getDate()-(day===0?6:day-1)+off*7);
-  return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+  return Array.from({length:7},function(_,i){var d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
 }
-function getDayDate(off){const d=new Date();d.setDate(d.getDate()+off);return d;}
+function getDayDate(off){var d=new Date();d.setDate(d.getDate()+off);return d;}
 function getMonthDates(off){
-  const now=new Date(),y=now.getFullYear(),m=now.getMonth()+off;
-  const first=new Date(y,m,1),last=new Date(y,m+1,0);
-  const start=new Date(first);start.setDate(first.getDate()-(first.getDay()===0?6:first.getDay()-1));
-  const end=new Date(last);const ld=last.getDay();end.setDate(last.getDate()+(ld===0?0:7-ld));
-  const dates=[];let cur=new Date(start);
+  var now=new Date(),y=now.getFullYear(),m=now.getMonth()+off;
+  var first=new Date(y,m,1),last=new Date(y,m+1,0);
+  var start=new Date(first);start.setDate(first.getDate()-(first.getDay()===0?6:first.getDay()-1));
+  var end=new Date(last);var ld=last.getDay();end.setDate(last.getDate()+(ld===0?0:7-ld));
+  var dates=[],cur=new Date(start);
   while(cur<=end){dates.push(new Date(cur));cur.setDate(cur.getDate()+1);}
-  return{dates,month:new Date(y,m,1)};
+  return{dates:dates,month:new Date(y,m,1)};
 }
-function iso(d){return d.toISOString().slice(0,10)}
-function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function iso(d){return d.toISOString().slice(0,10);}
+function isToday(d){var t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
-// ── View management ────────────────────────────────────────────────────────
+// View management
 function setView(v){
   view=v;
-  document.querySelectorAll('.view-tab').forEach((t,i)=>t.classList.toggle('active',['week','day','month'][i]===v));
+  document.querySelectorAll('.view-tab').forEach(function(t,i){t.classList.toggle('active',['week','day','month'][i]===v);});
   render();
 }
 function changePeriod(d){
@@ -494,11 +477,10 @@ function changePeriod(d){
 }
 function goToday(){weekOffset=0;dayOffset=0;monthOffset=0;render();}
 function goToDay(isoStr){
-  const target=new Date(isoStr),today=new Date();
+  var target=new Date(isoStr),today=new Date();
   dayOffset=Math.round((target-today)/(1000*60*60*24));
   setView('day');
 }
-
 function render(){
   if(view==='week')renderWeek();
   else if(view==='day')renderDay();
@@ -506,120 +488,112 @@ function render(){
   renderTasks();
 }
 
-// ── Week view ──────────────────────────────────────────────────────────────
 function renderWeek(){
-  const dates=getWeekDates(weekOffset);
+  var dates=getWeekDates(weekOffset);
   document.getElementById('periodLabel').textContent=
     dates[0].toLocaleDateString('nl-NL',{month:'short',day:'numeric'})+' – '+
     dates[6].toLocaleDateString('nl-NL',{month:'short',day:'numeric'});
-  document.getElementById('calBody').innerHTML=`
-    <div class="grid-wrapper">
-      <div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)">
-        <div class="day-header"></div>
-        ${dates.map((d,i)=>`<div class="day-header${isToday(d)?' today':''}">${DAYS[i]}<span>${d.getDate()}</span></div>`).join('')}
-      </div>
-      ${PERSONS.map(p=>`
-        <div class="person-row" style="grid-template-columns:72px repeat(7,1fr)">
-          <div class="row-label"><div class="dot" style="background:var(--${p})"></div><span class="name person-color-${p}">${NAMES[p]}</span></div>
-          ${dates.map(d=>{
-            const k=iso(d);const evs=(events[k]||[]).filter(e=>e.person===p);
-            return `<div class="day-cell${isToday(d)?' today-col':''}" onclick="openEventModal('${p}','${k}',event)">
-              ${evs.map(ev=>`<div class="event-chip bg-${p}${ev.fromGcal?' gcal':''}" onclick="editEvent(event,'${ev.id}','${k}')" title="${ev.title}">
-                ${ev.fromGcal?`<i class='ti ti-calendar' style='font-size:8px'></i>`:''}${ev.time?`<i class='ti ti-clock'></i>`:''}${trunc(ev.title,14)}
-              </div>`).join('')}
-              <button class="add-btn"><i class="ti ti-plus"></i></button>
-            </div>`;
-          }).join('')}
-        </div>`).join('')}
-      <div class="dinner-row">
-        <div class="dinner-label"><i class="ti ti-soup"></i> Diner</div>
-        ${dates.map(d=>{
-          const k=iso(d),dn=dinners[k]||{};
-          return `<div class="dinner-cell${isToday(d)?' today-col':''}" onclick="openDinnerModal('${k}')">
-            ${dn.meal?`<span class="meal">${trunc(dn.meal,16)}</span>`:`<span class="no-meal">Maaltijd toevoegen…</span>`}
-            ${dn.cook?`<div class="cook-badge bg-${dn.cook}"><i class='ti ti-chef-hat'></i>${NAMES[dn.cook]}</div>`:''}
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
+  var html='<div class="grid-wrapper"><div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)"><div class="day-header"></div>';
+  for(var i=0;i<dates.length;i++){
+    html+='<div class="day-header'+(isToday(dates[i])?' today':'')+'">'+DAYS[i]+'<span>'+dates[i].getDate()+'</span></div>';
+  }
+  html+='</div>';
+  for(var pi=0;pi<PERSONS.length;pi++){
+    var p=PERSONS[pi];
+    html+='<div class="person-row" style="grid-template-columns:72px repeat(7,1fr)"><div class="row-label"><div class="dot" style="background:var(--'+p+')"></div><span class="name person-color-'+p+'">'+NAMES[p]+'</span></div>';
+    for(var di=0;di<dates.length;di++){
+      var k=iso(dates[di]);
+      var evs=(events[k]||[]).filter(function(e){return e.person===p;});
+      html+='<div class="day-cell'+(isToday(dates[di])?' today-col':'')+'" onclick="openEventModal(\''+p+'\',\''+k+'\',event)">';
+      for(var ei=0;ei<evs.length;ei++){
+        var ev=evs[ei];
+        html+='<div class="event-chip bg-'+p+(ev.fromGcal?' gcal':'')+'" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')" title="'+ev.title+'">'+(ev.fromGcal?'<i class="ti ti-calendar" style="font-size:8px"></i>':'')+(ev.time?'<i class="ti ti-clock"></i>':'')+trunc(ev.title,14)+'</div>';
+      }
+      html+='<button class="add-btn"><i class="ti ti-plus"></i></button></div>';
+    }
+    html+='</div>';
+  }
+  html+='<div class="dinner-row"><div class="dinner-label"><i class="ti ti-soup"></i> Diner</div>';
+  for(var di2=0;di2<dates.length;di2++){
+    var dk=iso(dates[di2]);var dn=dinners[dk]||{};
+    html+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">';
+    html+=dn.meal?'<span class="meal">'+trunc(dn.meal,16)+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>';
+    if(dn.cook)html+='<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>';
+    html+='</div>';
+  }
+  html+='</div></div>';
+  document.getElementById('calBody').innerHTML=html;
 }
 
-// ── Day view ───────────────────────────────────────────────────────────────
 function renderDay(){
-  const d=getDayDate(dayOffset);const k=iso(d);
+  var d=getDayDate(dayOffset);var k=iso(d);
   document.getElementById('periodLabel').textContent=d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
-  const dn=dinners[k]||{};
-  document.getElementById('calBody').innerHTML=`
-    <div class="day-view-grid">
-      <div style="display:grid;grid-template-columns:80px repeat(4,1fr);border-bottom:1px solid var(--border)">
-        <div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>
-        ${PERSONS.map(p=>`<div class="day-col-hdr person-color-${p}" style="background:var(--${p}-light)">${NAMES[p]}</div>`).join('')}
-      </div>
-      <div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px">
-        <div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center">
-          <i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i>
-          <span style="font-size:9px;color:var(--muted);margin-top:2px">Afspraken</span>
-        </div>
-        ${PERSONS.map(p=>{
-          const evs=(events[k]||[]).filter(e=>e.person===p);
-          return `<div class="day-view-cell" onclick="openEventModal('${p}','${k}',event)">
-            ${evs.map(ev=>`<div class="event-chip bg-${p}${ev.fromGcal?' gcal':''}" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,'${ev.id}','${k}')">
-              ${ev.fromGcal?`<i class='ti ti-calendar'></i>`:''}${ev.time?`<strong>${ev.time}</strong> `:''}${ev.title}
-            </div>`).join('')}
-            <button class="add-btn" style="opacity:.4"><i class="ti ti-plus"></i></button>
-          </div>`;
-        }).join('')}
-      </div>
-      <div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none">
-        <div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div>
-        <div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal('${k}')">
-          ${dn.meal?`<div style="font-size:13px;font-weight:500">${dn.meal}</div>`:`<div style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</div>`}
-          ${dn.cook?`<div class="cook-badge bg-${dn.cook}" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class='ti ti-chef-hat'></i> ${NAMES[dn.cook]} kookt vanavond</div>`:''}
-        </div>
-      </div>
-    </div>`;
+  var dn=dinners[k]||{};
+  var html='<div class="day-view-grid"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);border-bottom:1px solid var(--border)"><div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>';
+  for(var pi=0;pi<PERSONS.length;pi++){
+    var p=PERSONS[pi];
+    html+='<div class="day-col-hdr person-color-'+p+'" style="background:var(--'+p+'-light)">'+NAMES[p]+'</div>';
+  }
+  html+='</div><div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px"><div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center"><i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i><span style="font-size:9px;color:var(--muted);margin-top:2px">Afspraken</span></div>';
+  for(var pi2=0;pi2<PERSONS.length;pi2++){
+    var p2=PERSONS[pi2];
+    var evs=(events[k]||[]).filter(function(e){return e.person===p2;});
+    html+='<div class="day-view-cell" onclick="openEventModal(\''+p2+'\',\''+k+'\',event)">';
+    for(var ei=0;ei<evs.length;ei++){
+      var ev=evs[ei];
+      html+='<div class="event-chip bg-'+p2+(ev.fromGcal?' gcal':'')+'" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')">'+(ev.fromGcal?'<i class="ti ti-calendar"></i>':'')+(ev.time?'<strong>'+ev.time+'</strong> ':'')+ev.title+'</div>';
+    }
+    html+='<button class="add-btn" style="opacity:.4"><i class="ti ti-plus"></i></button></div>';
+  }
+  html+='</div><div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none"><div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div>';
+  html+='<div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal(\''+k+'\')">';
+  html+=dn.meal?'<div style="font-size:13px;font-weight:500">'+dn.meal+'</div>':'<div style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</div>';
+  if(dn.cook)html+='<div class="cook-badge bg-'+dn.cook+'" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class="ti ti-chef-hat"></i> '+NAMES[dn.cook]+' kookt vanavond</div>';
+  html+='</div></div></div>';
+  document.getElementById('calBody').innerHTML=html;
 }
 
-// ── Month view ─────────────────────────────────────────────────────────────
 function renderMonth(){
-  const{dates,month}=getMonthDates(monthOffset);
+  var md=getMonthDates(monthOffset);var dates=md.dates;var month=md.month;
   document.getElementById('periodLabel').textContent=month.toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
-  document.getElementById('calBody').innerHTML=`
-    <div class="month-grid">
-      <div class="month-weekdays">${DAYS.map(d=>`<div class="month-weekday">${d}</div>`).join('')}</div>
-      <div class="month-cells">
-        ${dates.map(d=>{
-          const k=iso(d);const inMonth=d.getMonth()===month.getMonth();
-          const dayEvs=events[k]||[];const dn=dinners[k]||{};
-          return `<div class="month-cell${!inMonth?' other-month':''}${isToday(d)?' today-col':''}" onclick="goToDay('${k}')">
-            <div class="month-day-num">${d.getDate()}</div>
-            ${PERSONS.map(p=>dayEvs.filter(e=>e.person===p).map(ev=>`<div class="month-ev-chip bg-${p}">${trunc(ev.title,12)}</div>`).join('')).join('')}
-            ${dn.meal?`<div class="month-dinner"><i class='ti ti-soup' style="font-size:8px"></i>${trunc(dn.meal,12)}</div>`:''}
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
+  var html='<div class="month-grid"><div class="month-weekdays">';
+  for(var i=0;i<DAYS.length;i++)html+='<div class="month-weekday">'+DAYS[i]+'</div>';
+  html+='</div><div class="month-cells">';
+  for(var di=0;di<dates.length;di++){
+    var d=dates[di];var k=iso(d);var inMonth=d.getMonth()===month.getMonth();
+    var dayEvs=events[k]||[];var dn=dinners[k]||{};
+    html+='<div class="month-cell'+((!inMonth)?' other-month':'')+(isToday(d)?' today-col':'')+'" onclick="goToDay(\''+k+'\')">';
+    html+='<div class="month-day-num">'+d.getDate()+'</div>';
+    for(var pi=0;pi<PERSONS.length;pi++){
+      var p=PERSONS[pi];
+      var pevs=dayEvs.filter(function(e){return e.person===p;});
+      for(var ei=0;ei<pevs.length;ei++)html+='<div class="month-ev-chip bg-'+p+'">'+trunc(pevs[ei].title,12)+'</div>';
+    }
+    if(dn.meal)html+='<div class="month-dinner"><i class="ti ti-soup" style="font-size:8px"></i>'+trunc(dn.meal,12)+'</div>';
+    html+='</div>';
+  }
+  html+='</div></div>';
+  document.getElementById('calBody').innerHTML=html;
 }
 
-// ── Tasks ──────────────────────────────────────────────────────────────────
 function renderTasks(){
-  document.getElementById('taskList').innerHTML=PERSONS.map(p=>{
-    const pt=tasks[p]||[];
-    return `<div class="task-person">
-      <div class="task-person-hdr"><div style="width:8px;height:8px;border-radius:50%;background:var(--${p})"></div><span class="person-color-${p}">${NAMES[p]}</span></div>
-      ${pt.map(t=>`<div class="task-item" onclick="toggleTask('${p}','${t.id}')">
-        <div class="task-check${t.done?' done':''}">${t.done?`<i class='ti ti-check'></i>`:''}</div>
-        <span class="task-text${t.done?' done':''}">${t.text}</span>
-      </div>`).join('')}
-      <button class="add-task-btn" onclick="openTaskModal('${p}')"><i class='ti ti-plus'></i> Toevoegen</button>
-    </div>`;
-  }).join('');
+  var html='';
+  for(var pi=0;pi<PERSONS.length;pi++){
+    var p=PERSONS[pi];var pt=tasks[p]||[];
+    html+='<div class="task-person"><div class="task-person-hdr"><div style="width:8px;height:8px;border-radius:50%;background:var(--'+p+')"></div><span class="person-color-'+p+'">'+NAMES[p]+'</span></div>';
+    for(var ti=0;ti<pt.length;ti++){
+      var t=pt[ti];
+      html+='<div class="task-item" onclick="toggleTask(\''+p+'\',\''+t.id+'\')"><div class="task-check'+(t.done?' done':'')+'">'+( t.done?'<i class="ti ti-check"></i>':'' )+'</div><span class="task-text'+(t.done?' done':'')+'">'+t.text+'</span></div>';
+    }
+    html+='<button class="add-task-btn" onclick="openTaskModal(\''+p+'\')"><i class="ti ti-plus"></i> Toevoegen</button></div>';
+  }
+  document.getElementById('taskList').innerHTML=html;
 }
 
-// ── Event modal ────────────────────────────────────────────────────────────
+// Modals
 function openEventModal(person,dateKey,e){
   if(e)e.stopPropagation();
-  editingEvent=null;editingCell={person,dateKey};
+  editingEvent=null;editingCell={person:person,dateKey:dateKey};
   document.getElementById('evPerson').value=person;
   document.getElementById('evTitle').value='';
   document.getElementById('evTime').value='';
@@ -628,117 +602,90 @@ function openEventModal(person,dateKey,e){
   document.getElementById('evSyncLabel').style.display='block';
   document.getElementById('evDeleteBtn').style.display='none';
   document.getElementById('gcalBadge').style.display='none';
-  document.getElementById('evTitle_hdr').innerHTML=`<i class='ti ti-calendar-plus'></i> Afspraak toevoegen`;
+  document.getElementById('evTitle_hdr').innerHTML='<i class="ti ti-calendar-plus"></i> Afspraak toevoegen';
   document.getElementById('eventModal').classList.add('open');
-  setTimeout(()=>document.getElementById('evTitle').focus(),100);
+  setTimeout(function(){document.getElementById('evTitle').focus();},100);
 }
 
 function editEvent(e,evId,dateKey){
   e.stopPropagation();
-  const ev=(events[dateKey]||[]).find(x=>x.id===evId);if(!ev)return;
-  editingEvent={evId,dateKey};editingCell=null;
+  var ev=(events[dateKey]||[]).find(function(x){return x.id===evId;});if(!ev)return;
+  editingEvent={evId:evId,dateKey:dateKey};editingCell=null;
   document.getElementById('evPerson').value=ev.person;
   document.getElementById('evTitle').value=ev.title;
-  document.getElementById('evTime').value=ev.time||(ev.endTime?ev.time+' – '+ev.endTime:'');
+  document.getElementById('evTime').value=ev.time||'';
   document.getElementById('evDeleteBtn').style.display='block';
   document.getElementById('gcalBadge').style.display=ev.fromGcal?'inline-flex':'none';
-  // Hide sync option when editing (sync handled automatically)
   document.getElementById('evSync').parentElement.style.display='none';
   document.getElementById('evSyncLabel').style.display='none';
-  document.getElementById('evTitle_hdr').innerHTML=`<i class='ti ti-pencil'></i> Afspraak bewerken`;
+  document.getElementById('evTitle_hdr').innerHTML='<i class="ti ti-pencil"></i> Afspraak bewerken';
   document.getElementById('eventModal').classList.add('open');
-  setTimeout(()=>document.getElementById('evTitle').focus(),100);
+  setTimeout(function(){document.getElementById('evTitle').focus();},100);
 }
 
 async function saveEvent(){
-  const person=document.getElementById('evPerson').value;
-  const title=document.getElementById('evTitle').value.trim();
-  const time=document.getElementById('evTime').value.trim();
-  const doSync=document.getElementById('evSync').value==='yes';
+  var person=document.getElementById('evPerson').value;
+  var title=document.getElementById('evTitle').value.trim();
+  var time=document.getElementById('evTime').value.trim();
+  var doSync=document.getElementById('evSync').value==='yes';
   if(!title)return;
-
   if(editingEvent){
-    // Editing existing event
-    const ev=(events[editingEvent.dateKey]||[]).find(x=>x.id===editingEvent.evId);
-    if(ev){
-      ev.person=person;ev.title=title;ev.time=time;
-      // Update in Google Calendar if it came from there or was synced
-      if(isGcalConnected()&&(ev.fromGcal||ev.synced)){
-        await updateGcalEvent(ev,editingEvent.dateKey);
-        toast('Bijgewerkt in Google Agenda');
-      }
-    }
+    var ev=(events[editingEvent.dateKey]||[]).find(function(x){return x.id===editingEvent.evId;});
+    if(ev){ev.person=person;ev.title=title;ev.time=time;if(isGcalConnected()&&(ev.fromGcal||ev.synced)){await updateGcalEvent(ev,editingEvent.dateKey);toast('Bijgewerkt in Google Agenda');}}
   }else{
-    // New event
-    const k=editingCell.dateKey;
+    var k=editingCell.dateKey;
     if(!events[k])events[k]=[];
-    const newEv={id:uid(),person,title,time,synced:false};
-    if(doSync&&isGcalConnected()){
-      const gcalId=await pushToGcal(newEv,k);
-      if(gcalId){newEv.gcalId=gcalId;newEv.synced=true;newEv.fromGcal=true;}
-    }
+    var newEv={id:uid(),person:person,title:title,time:time,synced:false};
+    if(doSync&&isGcalConnected()){var gcalId=await pushToGcal(newEv,k);if(gcalId){newEv.gcalId=gcalId;newEv.synced=true;newEv.fromGcal=true;}}
     events[k].push(newEv);
   }
-  closeModal('eventModal');
-  await saveShared();
-  toast('Afspraak opgeslagen');
+  closeModal('eventModal');await saveShared();toast('Afspraak opgeslagen');
 }
 
 async function deleteEvent(){
-  const{evId,dateKey}=editingEvent;
-  const ev=(events[dateKey]||[]).find(x=>x.id===evId);
-  if(ev&&isGcalConnected()&&(ev.fromGcal||ev.synced)){
-    await deleteGcalEvent(ev);
-    toast('Verwijderd uit Google Agenda');
-  }
-  events[dateKey]=(events[dateKey]||[]).filter(x=>x.id!==evId);
-  closeModal('eventModal');
-  await saveShared();
-  toast('Afspraak verwijderd');
+  var evId=editingEvent.evId,dateKey=editingEvent.dateKey;
+  var ev=(events[dateKey]||[]).find(function(x){return x.id===evId;});
+  if(ev&&isGcalConnected()&&(ev.fromGcal||ev.synced)){await deleteGcalEvent(ev);}
+  events[dateKey]=(events[dateKey]||[]).filter(function(x){return x.id!==evId;});
+  closeModal('eventModal');await saveShared();toast('Afspraak verwijderd');
 }
 
 function openDinnerModal(key){
   editingDinnerKey=key;
-  const dn=dinners[key]||{};
+  var dn=dinners[key]||{};
   document.getElementById('dinnerTitle').value=dn.meal||'';
   document.getElementById('dinnerCook').value=dn.cook||'';
   document.getElementById('dinnerModal').classList.add('open');
-  setTimeout(()=>document.getElementById('dinnerTitle').focus(),100);
+  setTimeout(function(){document.getElementById('dinnerTitle').focus();},100);
 }
 async function saveDinner(){
-  const meal=document.getElementById('dinnerTitle').value.trim();
-  const cook=document.getElementById('dinnerCook').value;
-  if(meal)dinners[editingDinnerKey]={meal,cook};
+  var meal=document.getElementById('dinnerTitle').value.trim();
+  var cook=document.getElementById('dinnerCook').value;
+  if(meal)dinners[editingDinnerKey]={meal:meal,cook:cook};
   else delete dinners[editingDinnerKey];
-  closeModal('dinnerModal');
-  await saveShared();
-  toast('Diner bijgewerkt');
+  closeModal('dinnerModal');await saveShared();toast('Diner bijgewerkt');
 }
 async function clearDinner(){
   delete dinners[editingDinnerKey];
-  closeModal('dinnerModal');
-  await saveShared();
-  toast('Diner verwijderd');
+  closeModal('dinnerModal');await saveShared();toast('Diner verwijderd');
 }
 
 function openTaskModal(person){
   document.getElementById('taskPerson').value=person;
   document.getElementById('taskTitle').value='';
   document.getElementById('taskModal').classList.add('open');
-  setTimeout(()=>document.getElementById('taskTitle').focus(),100);
+  setTimeout(function(){document.getElementById('taskTitle').focus();},100);
 }
 async function saveTask(){
-  const person=document.getElementById('taskPerson').value;
-  const text=document.getElementById('taskTitle').value.trim();
+  var person=document.getElementById('taskPerson').value;
+  var text=document.getElementById('taskTitle').value.trim();
   if(!text)return;
   if(!tasks[person])tasks[person]=[];
-  tasks[person].push({id:uid(),text,done:false});
-  closeModal('taskModal');
-  await saveShared();
-  toast('Taak toegevoegd');
+  tasks[person].push({id:uid(),text:text,done:false});
+  closeModal('taskModal');await saveShared();toast('Taak toegevoegd');
 }
 async function toggleTask(person,id){
-  const t=(tasks[person]||[]).find(x=>x.id===id);
+  var t=(tasks[person]||[]).find(function(x){return x.id===id;});
   if(t){t.done=!t.done;await saveShared();}
 }
 
@@ -746,11 +693,11 @@ function closeModal(id){
   document.getElementById(id).classList.remove('open');
   editingEvent=null;editingCell=null;editingDinnerKey=null;
 }
-document.querySelectorAll('.modal-overlay').forEach(m=>{
-  m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)});
+document.querySelectorAll('.modal-overlay').forEach(function(m){
+  m.addEventListener('click',function(e){if(e.target===m)closeModal(m.id);});
 });
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id));
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(function(m){closeModal(m.id);});
   if(e.key==='Enter'){
     if(document.getElementById('eventModal').classList.contains('open'))saveEvent();
     else if(document.getElementById('dinnerModal').classList.contains('open'))saveDinner();
@@ -758,16 +705,16 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-function trunc(s,n){return s&&s.length>n?s.slice(0,n-1)+'…':s}
+function trunc(s,n){return s&&s.length>n?s.slice(0,n-1)+'…':s;}
 function toast(msg){
-  const el=document.getElementById('toast');
+  var el=document.getElementById('toast');
   el.textContent=msg;el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),2800);
+  setTimeout(function(){el.classList.remove('show');},2800);
 }
 
 requestWakeLock();
 handleOAuthCallback();
-loadShared().then(()=>{if(isGcalConnected())fetchAllGcalEvents();});
+loadShared().then(function(){if(isGcalConnected())fetchAllGcalEvents();});
 startPolling();
 </script>
 </body>
