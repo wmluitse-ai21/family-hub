@@ -27,11 +27,14 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .week-nav button{background:none;border:1px solid var(--border);border-radius:7px;padding:5px 9px;cursor:pointer;color:var(--text);font-size:12px}
 .week-nav button:hover{background:var(--border)}
 .week-label{font-size:12px;font-weight:500;min-width:140px;text-align:center}
-.sync-btns{display:flex;gap:6px}
-.sync-btn{display:flex;align-items:center;gap:4px;font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--card);cursor:pointer;color:var(--text);font-weight:500}
-.sync-btn.google{border-color:#ea4335;color:#ea4335}
-.sync-btn.outlook{border-color:#0078d4;color:#0078d4}
-.sync-btn.connected{border-color:#1d9e75;color:#1d9e75;background:var(--pepijn-light)}
+
+/* Person login buttons */
+.person-logins{display:flex;gap:6px;flex-wrap:wrap}
+.person-login-btn{display:flex;align-items:center;gap:4px;font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-weight:600;transition:all .15s}
+.person-login-btn.connected{border-width:1.5px}
+.person-login-btn .status-dot{width:6px;height:6px;border-radius:50%;background:#ccc;flex-shrink:0}
+.person-login-btn.connected .status-dot{background:#1d9e75}
+
 .wake-indicator{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);padding:4px 8px;border-radius:6px;border:1px solid var(--border)}
 .wake-dot{width:7px;height:7px;border-radius:50%;background:#ccc}
 .wake-dot.active{background:#1d9e75}
@@ -43,12 +46,10 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .sidebar h3{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:5px;color:var(--text)}
 .sidebar h3 i{font-size:14px;color:var(--muted)}
 
-/* avatars */
 .family-avatars{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .avatar-chip{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 4px;border-radius:20px;font-size:11px;font-weight:600}
 .avatar-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
 
-/* week grid */
 .grid-wrapper{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .day-headers{display:grid;grid-template-columns:72px repeat(7,1fr);border-bottom:1px solid var(--border)}
 .day-header{padding:8px 6px;text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
@@ -65,11 +66,10 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .day-cell:last-child{border-right:none}
 .day-cell.today-col{background:rgba(186,117,23,.04)}
 .event-chip{border-radius:4px;padding:2px 5px;font-size:9px;font-weight:500;display:flex;align-items:center;gap:2px;line-height:1.4;cursor:pointer}
-.event-chip i{font-size:8px}
+.event-chip.gcal{border-left:2px solid currentColor;opacity:.85}
 .add-btn{opacity:0;font-size:14px;color:var(--muted);cursor:pointer;margin-top:auto;align-self:flex-end;border:none;background:none;padding:1px 3px;line-height:1}
 .day-cell:hover .add-btn{opacity:1}
 
-/* dinner row */
 .dinner-row{display:grid;grid-template-columns:72px repeat(7,1fr);background:#fff9f0;border-top:2px solid var(--border)}
 .dinner-label{padding:6px 8px;border-right:1px solid var(--border);display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--abel-dark)}
 .dinner-cell{border-right:.5px solid var(--border);padding:5px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-height:52px}
@@ -80,7 +80,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .dinner-cell .no-meal{font-size:9px;color:var(--muted);font-style:italic}
 .cook-badge{display:inline-flex;align-items:center;gap:3px;border-radius:10px;padding:1px 5px;font-size:9px;font-weight:600}
 
-/* day view */
 .day-view-grid{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .day-col-headers{display:grid;border-bottom:1px solid var(--border)}
 .day-col-hdr{padding:10px 8px;text-align:center;font-size:11px;font-weight:700;border-right:.5px solid var(--border)}
@@ -91,22 +90,19 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .day-view-cell:hover{background:#fdf5ec}
 .day-view-cell:last-child{border-right:none}
 
-/* month view */
 .month-grid{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .month-weekdays{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)}
 .month-weekday{padding:7px;text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
 .month-cells{display:grid;grid-template-columns:repeat(7,1fr)}
-.month-cell{border-right:.5px solid var(--border);border-bottom:.5px solid var(--border);padding:5px;min-height:80px;cursor:pointer;transition:background .1s;vertical-align:top}
+.month-cell{border-right:.5px solid var(--border);border-bottom:.5px solid var(--border);padding:5px;min-height:80px;cursor:pointer;transition:background .1s}
 .month-cell:hover{background:#fdf5ec}
 .month-cell.other-month{opacity:.4}
 .month-cell.today-col{background:rgba(186,117,23,.06)}
-.month-day-num{font-size:12px;font-weight:600;margin-bottom:3px;color:var(--text)}
+.month-day-num{font-size:12px;font-weight:600;margin-bottom:3px}
 .month-cell.today-col .month-day-num{color:var(--abel);background:var(--abel-light);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.month-dot-row{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:2px}
-.month-ev-chip{font-size:8px;border-radius:3px;padding:1px 4px;font-weight:500;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.month-ev-chip{font-size:8px;border-radius:3px;padding:1px 4px;font-weight:500;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:1px}
 .month-dinner{font-size:8px;color:var(--abel-dark);background:var(--abel-light);border-radius:3px;padding:1px 4px;margin-top:2px;display:flex;align-items:center;gap:2px}
 
-/* tasks */
 .task-person{margin-bottom:10px}
 .task-person-hdr{display:flex;align-items:center;gap:5px;margin-bottom:4px;font-size:10px;font-weight:700}
 .task-item{display:flex;align-items:flex-start;gap:5px;margin-bottom:3px;padding:3px 5px;border-radius:5px;cursor:pointer}
@@ -119,7 +115,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .add-task-btn{font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;padding:2px 3px;display:flex;align-items:center;gap:2px}
 .add-task-btn:hover{color:var(--text)}
 
-/* modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,46,36,.35);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--card);border-radius:14px;padding:18px;width:320px;border:1px solid var(--border)}
@@ -131,6 +126,15 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .btn-cancel{padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:none;cursor:pointer;font-size:12px;color:var(--muted)}
 .btn-save{padding:6px 14px;border-radius:7px;border:none;background:var(--abel);color:#fff;cursor:pointer;font-size:12px;font-weight:600}
 .btn-delete{padding:6px 14px;border-radius:7px;border:none;background:#fee2e2;color:#991f1f;cursor:pointer;font-size:12px;margin-right:auto}
+
+/* Login modal */
+.login-modal{background:var(--card);border-radius:14px;padding:24px;width:340px;border:1px solid var(--border);text-align:center}
+.login-modal h2{font-size:16px;font-weight:600;margin-bottom:6px}
+.login-modal p{font-size:12px;color:var(--muted);margin-bottom:18px}
+.login-person-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);cursor:pointer;margin-bottom:8px;font-size:13px;font-weight:600;transition:all .15s}
+.login-person-btn:hover{border-color:currentColor}
+.login-person-btn .dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.login-person-btn .connected-tag{margin-left:auto;font-size:10px;background:#e1f5ee;color:#085041;padding:2px 7px;border-radius:10px}
 
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#3a2e24;color:#fff;padding:9px 18px;border-radius:18px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
 .toast.show{opacity:1}
@@ -146,9 +150,9 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
   <header>
     <div class="logo"><i class="ti ti-home-heart"></i><h1>Family Hub</h1></div>
     <div class="view-tabs">
-      <button class="view-tab active" onclick="setView('week')">Week</button>
-      <button class="view-tab" onclick="setView('day')">Day</button>
-      <button class="view-tab" onclick="setView('month')">Month</button>
+              <button class="view-tab active" onclick="setView('week')">Week</button>
+      <button class="view-tab" onclick="setView('day')">Dag</button>
+      <button class="view-tab" onclick="setView('month')">Maand</button>
     </div>
     <div class="week-nav">
       <button onclick="changePeriod(-1)"><i class="ti ti-chevron-left"></i></button>
@@ -156,10 +160,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
       <button onclick="changePeriod(1)"><i class="ti ti-chevron-right"></i></button>
       <button onclick="goToday()" style="font-size:11px;padding:5px 9px">Today</button>
     </div>
-    <div class="sync-btns">
-      <button class="sync-btn google" id="gBtn" onclick="connectCal('google')"><i class="ti ti-calendar"></i> Google</button>
-      <button class="sync-btn outlook" id="oBtn" onclick="connectCal('outlook')"><i class="ti ti-calendar"></i> Outlook</button>
-    </div>
+    <div class="person-logins" id="personLogins"></div>
     <div class="wake-indicator" id="wakeIndicator">
       <div class="wake-dot" id="wakeDot"></div>
       <span id="wakeLabel">Screen on</span>
@@ -182,69 +183,79 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
         <div id="taskList"></div>
       </div>
       <div style="padding:10px 12px;border-top:1px solid var(--border)">
-        <p style="font-size:10px;color:var(--muted);line-height:1.6">Click any cell to add an event. Click a dinner to set the meal &amp; cook.</p>
+        <p style="font-size:10px;color:var(--muted);line-height:1.6">Click any cell to add an event. Click dinner to set meal &amp; cook. Click a name button to connect Google Calendar.</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Event modal -->
+<!-- Person login picker modal -->
+<div class="modal-overlay" id="loginModal">
+  <div class="login-modal">
+    <h2>🔗 Google Agenda koppelen</h2>
+    <p>Wie logt in? Die persoon wordt doorgestuurd naar Google om toestemming te geven.</p>
+    <div id="loginPersonList"></div>
+    <button class="btn-cancel" style="width:100%;margin-top:4px" onclick="closeModal('loginModal')">Annuleren</button>
+  </div>
+</div>
+
+<!-- Gebeurtenis modal -->
 <div class="modal-overlay" id="eventModal">
   <div class="modal">
-    <h2 id="evModalTitle"><i class="ti ti-calendar-plus"></i> Add event</h2>
-    <label>Person</label>
+    <h2 id="evModalTitle"><i class="ti ti-calendar-plus"></i> Gebeurtenis toevoegen</h2>
+    <label>Persoon</label>
     <select id="evPerson">
-      <option value="mom">Mom</option><option value="dad">Dad</option>
+      <option value="mom">Mama</option><option value="dad">Papa</option>
       <option value="pepijn">Pepijn</option><option value="abel">Abel</option>
     </select>
-    <label>Event title</label>
-    <input type="text" id="evTitle" placeholder="e.g. Football practice"/>
-    <label>Time (optional)</label>
-    <input type="text" id="evTime" placeholder="e.g. 15:00 – 16:30"/>
-    <label>Sync to Google Calendar?</label>
-    <select id="evSync"><option value="yes">Yes – push to person's Google Calendar</option><option value="no">No – local only</option></select>
+    <label>Titel</label>
+    <input type="text" id="evTitle" placeholder="bijv. Voetbaltraining"/>
+    <label>Tijd (optioneel)</label>
+    <input type="text" id="evTime" placeholder="bijv. 15:00 – 16:30"/>
+    <label>Synchroniseren met Google Agenda?</label>
+    <select id="evSync"><option value="yes">Ja – naar Google Agenda sturen</option><option value="no">Nee – alleen lokaal</option></select>
     <div class="modal-btns">
       <button class="btn-delete" id="evDeleteBtn" onclick="deleteEvent()" style="display:none"><i class="ti ti-trash"></i></button>
-      <button class="btn-cancel" onclick="closeModal('eventModal')">Cancel</button>
-      <button class="btn-save" onclick="saveEvent()">Save</button>
+      <button class="btn-cancel" onclick="closeModal('eventModal')">Annuleren</button>
+      <button class="btn-save" onclick="saveEvent()">Opslaan</button>
     </div>
   </div>
 </div>
 
-<!-- Dinner modal -->
+<!-- Diner modal -->
 <div class="modal-overlay" id="dinnerModal">
   <div class="modal">
-    <h2><i class="ti ti-soup"></i> Edit dinner</h2>
-    <label>Meal</label>
-    <input type="text" id="dinnerTitle" placeholder="e.g. Spaghetti bolognese"/>
-    <label>Who cooks?</label>
+    <h2><i class="ti ti-soup"></i> Diner bewerken</h2>
+    <label>Maaltijd</label>
+    <input type="text" id="dinnerTitle" placeholder="bijv. Spaghetti bolognese"/>
+    <label>Wie kookt?</label>
     <select id="dinnerCook">
-      <option value="">— no one assigned —</option>
-      <option value="mom">Mom</option><option value="dad">Dad</option>
+      <option value="">— niemand toegewezen —</option>
+      <option value="mom">Mama</option><option value="dad">Papa</option>
       <option value="pepijn">Pepijn</option><option value="abel">Abel</option>
     </select>
     <div class="modal-btns">
       <button class="btn-delete" onclick="clearDinner()"><i class="ti ti-trash"></i></button>
-      <button class="btn-cancel" onclick="closeModal('dinnerModal')">Cancel</button>
-      <button class="btn-save" onclick="saveDinner()">Save</button>
+      <button class="btn-cancel" onclick="closeModal('dinnerModal')">Annuleren</button>
+      <button class="btn-save" onclick="saveDinner()">Opslaan</button>
     </div>
   </div>
 </div>
 
-<!-- Task modal -->
+<!-- Taak modal -->
 <div class="modal-overlay" id="taskModal">
   <div class="modal">
-    <h2><i class="ti ti-circle-plus"></i> Add task</h2>
-    <label>Person</label>
+    <h2><i class="ti ti-circle-plus"></i> Taak toevoegen</h2>
+    <label>Persoon</label>
     <select id="taskPerson">
-      <option value="mom">Mom</option><option value="dad">Dad</option>
+      <option value="mom">Mama</option><option value="dad">Papa</option>
       <option value="pepijn">Pepijn</option><option value="abel">Abel</option>
     </select>
-    <label>Task</label>
-    <input type="text" id="taskTitle" placeholder="e.g. Buy groceries"/>
+    <label>Taak</label>
+    <input type="text" id="taskTitle" placeholder="bijv. Boodschappen doen"/>
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal('taskModal')">Cancel</button>
-      <button class="btn-save" onclick="saveTask()">Save</button>
+      <button class="btn-cancel" onclick="closeModal('taskModal')">Annuleren</button>
+      <button class="btn-save" onclick="saveTask()">Opslaan</button>
     </div>
   </div>
 </div>
@@ -253,16 +264,21 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 
 <script>
 const PERSONS=['mom','dad','pepijn','abel'];
-const NAMES={mom:'Mom',dad:'Dad',pepijn:'Pepijn',abel:'Abel'};
-const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const COLORS={mom:'#d4537e',dad:'#378add',pepijn:'#1d9e75',abel:'#ba7517'};
+const NAMES={mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
+const EMAILS={mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
+const INITIALS={mom:'M',dad:'D',pepijn:'P',abel:'A'};
+const DAYS=['Ma','Di','Wo','Do','Vr','Za','Zo'];
+const GC_CLIENT_ID='627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
+const GC_SCOPE='https://www.googleapis.com/auth/calendar.events';
+const REDIRECT_URI='https://wmluitse-ai21.github.io/family-hub/';
 
-let view='week', weekOffset=0, dayOffset=0, monthOffset=0;
-let events={}, dinners={}, tasks={mom:[],dad:[],pepijn:[],abel:[]};
-let editingEvent=null, editingDinnerKey=null, editingCell=null;
+let view='week',weekOffset=0,dayOffset=0,monthOffset=0;
+let events={},dinners={},tasks={mom:[],dad:[],pepijn:[],abel:[]};
+let editingEvent=null,editingDinnerKey=null,editingCell=null;
 let wakeLock=null;
-let googleConnected=false, outlookConnected=false;
-let googleTokens={};
+// tokens per person: {mom: {access_token, expires_at}, ...}
+let tokens={};
+let pendingLoginPerson=null;
 
 // ── Wake Lock ──────────────────────────────────────────────────────────────
 async function requestWakeLock(){
@@ -270,39 +286,35 @@ async function requestWakeLock(){
     if('wakeLock' in navigator){
       wakeLock=await navigator.wakeLock.request('screen');
       document.getElementById('wakeDot').classList.add('active');
-      document.getElementById('wakeLabel').textContent='Screen on';
-      wakeLock.addEventListener('release',()=>{
-        document.getElementById('wakeDot').classList.remove('active');
-        document.getElementById('wakeLabel').textContent='Screen off';
-      });
+      wakeLock.addEventListener('release',()=>document.getElementById('wakeDot').classList.remove('active'));
     }
   }catch(e){}
 }
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible') requestWakeLock();
-});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')requestWakeLock()});
 
 // ── Storage ────────────────────────────────────────────────────────────────
 async function loadData(){
   try{
-    const r=await window.storage.get('familyhub-v2');
-    if(r){const d=JSON.parse(r.value);events=d.events||{};dinners=d.dinners||{};tasks=d.tasks||{mom:[],dad:[],pepijn:[],abel:[]};googleConnected=d.googleConnected||false;outlookConnected=d.outlookConnected||false;googleTokens=d.googleTokens||{};}
+    const r=await window.storage.get('familyhub-v3');
+    if(r){const d=JSON.parse(r.value);events=d.events||{};dinners=d.dinners||{};tasks=d.tasks||{mom:[],dad:[],pepijn:[],abel:[]};tokens=d.tokens||{};}
   }catch(e){}
   seedDefaults();
-  if(googleConnected) document.getElementById('gBtn').classList.add('connected');
-  if(outlookConnected) document.getElementById('oBtn').classList.add('connected');
+  renderLoginButtons();
   render();
+  // fetch gcal for all connected persons
+  for(const p of PERSONS){if(isConnected(p))fetchGoogleEvents(p);}
 }
 async function saveData(){
-  try{await window.storage.set('familyhub-v2',JSON.stringify({events,dinners,tasks,googleConnected,outlookConnected,googleTokens}));}catch(e){}
+  try{await window.storage.set('familyhub-v3',JSON.stringify({events,dinners,tasks,tokens}));}catch(e){}
+  render();
 }
 
+function isConnected(p){return !!(tokens[p]&&tokens[p].access_token&&tokens[p].expires_at>Date.now())}
+
 function seedDefaults(){
-  const w=getWeekDates(0);
-  const fmt=d=>d.toISOString().slice(0,10);
+  const w=getWeekDates(0);const fmt=d=>d.toISOString().slice(0,10);
   [{p:'mom',d:0,t:'Yoga class',ti:'09:00'},{p:'dad',d:0,t:'Work meeting',ti:'10:30'},{p:'pepijn',d:1,t:'Football practice',ti:'16:00'},{p:'abel',d:2,t:'Art class',ti:'14:00'},{p:'mom',d:3,t:'Book club',ti:'19:00'},{p:'dad',d:4,t:'Gym',ti:'07:00'}].forEach(ev=>{
-    const k=fmt(w[ev.d]);
-    if(!events[k])events[k]=[];
+    const k=fmt(w[ev.d]);if(!events[k])events[k]=[];
     if(!events[k].find(e=>e.title===ev.t&&e.person===ev.p))events[k].push({id:uid(),person:ev.p,title:ev.t,time:ev.ti,synced:false});
   });
   [[0,'Pasta carbonara','mom'],[1,'Chicken stir fry','dad'],[2,'Homemade pizza',''],[4,'Fish & chips','pepijn'],[6,'Sunday roast','dad']].forEach(([di,meal,cook])=>{
@@ -313,8 +325,117 @@ function seedDefaults(){
   if(!tasks.pepijn.length)tasks.pepijn=[{id:uid(),text:'Homework math',done:false}];
   if(!tasks.abel.length)tasks.abel=[{id:uid(),text:'Clean room',done:false}];
 }
-
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+
+// ── OAuth ──────────────────────────────────────────────────────────────────
+function openLoginModal(){
+  renderLoginPersonList();
+  document.getElementById('loginModal').classList.add('open');
+}
+
+function renderLoginPersonList(){
+  document.getElementById('loginPersonList').innerHTML=PERSONS.map(p=>`
+    <button class="login-person-btn person-color-${p}" onclick="startLogin('${p}')" style="border-color:var(--${p})">
+      <div class="dot" style="background:var(--${p})">${INITIALS[p]}</div>
+      <div style="text-align:left">
+        <div>${NAMES[p]}</div>
+        <div style="font-size:10px;font-weight:400;color:var(--muted)">${EMAILS[p]}</div>
+      </div>
+      ${isConnected(p)?`<span class="connected-tag">✓ Connected</span>`:''}
+    </button>`).join('');
+}
+
+function renderLoginButtons(){
+  document.getElementById('personLogins').innerHTML=`
+    <button onclick="openLoginModal()" style="display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-weight:600">
+      <i class="ti ti-calendar"></i> Google Calendar
+      <span style="background:#e1f5ee;color:#085041;border-radius:10px;padding:1px 7px;font-size:10px">${PERSONS.filter(isConnected).length}/4</span>
+    </button>`;
+}
+
+function startLogin(person){
+  pendingLoginPerson=person;
+  sessionStorage.setItem('pendingLoginPerson',person);
+  closeModal('loginModal');
+  const params=new URLSearchParams({
+    client_id:GC_CLIENT_ID,
+    redirect_uri:REDIRECT_URI,
+    response_type:'token',
+    scope:GC_SCOPE,
+    prompt:'consent',
+    login_hint:EMAILS[person]
+  });
+  window.location.href='https://accounts.google.com/o/oauth2/auth?'+params.toString();
+}
+
+function handleOAuthCallback(){
+  const hash=window.location.hash;
+  if(!hash)return;
+  const params=new URLSearchParams(hash.replace('#',''));
+  const token=params.get('access_token');
+  if(!token)return;
+  const person=sessionStorage.getItem('pendingLoginPerson');
+  if(!person)return;
+  sessionStorage.removeItem('pendingLoginPerson');
+  tokens[person]={access_token:token,expires_at:Date.now()+(parseInt(params.get('expires_in')||3600)*1000)};
+  window.history.replaceState(null,null,window.location.pathname);
+  saveData();
+  renderLoginButtons();
+  toast(`✅ ${NAMES[person]}'s Google Calendar connected!`);
+  fetchGoogleEvents(person);
+}
+
+async function fetchGoogleEvents(person){
+  if(!isConnected(person))return;
+  const dates=getWeekDates(weekOffset);
+  const timeMin=new Date(dates[0]);timeMin.setHours(0,0,0,0);
+  const timeMax=new Date(dates[6]);timeMax.setHours(23,59,59,999);
+  try{
+    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(EMAILS[person])}/events?timeMin=${timeMin.toISOString()}&timeMax=${timeMax.toISOString()}&singleEvents=true&orderBy=startTime`,{
+      headers:{'Authorization':'Bearer '+tokens[person].access_token}
+    });
+    if(!r.ok){if(r.status===401){tokens[person]={};saveData();renderLoginButtons();}return;}
+    const data=await r.json();
+    // remove old gcal events for this person in this week
+    dates.forEach(d=>{
+      const k=iso(d);
+      if(events[k])events[k]=events[k].filter(e=>!(e.person===person&&e.fromGcal));
+    });
+    (data.items||[]).forEach(item=>{
+      const dateStr=(item.start.date||item.start.dateTime||'').slice(0,10);
+      if(!dateStr)return;
+      if(!events[dateStr])events[dateStr]=[];
+      events[dateStr].push({
+        id:uid(),gcalId:item.id,person,fromGcal:true,
+        title:item.summary||'(no title)',
+        time:item.start.dateTime?item.start.dateTime.slice(11,16):'',
+        synced:true
+      });
+    });
+    saveData();render();
+  }catch(e){}
+}
+
+async function pushToGoogleCalendar(ev,dateKey){
+  const person=ev.person;
+  if(!isConnected(person))return;
+  const body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
+  if(ev.time){
+    const[hh,mm]=(ev.time.split('–')[0]||ev.time).trim().split(':').map(Number);
+    const pad=n=>String(n).padStart(2,'0');
+    body.start={dateTime:`${dateKey}T${pad(hh)}:${pad(mm||0)}:00`};
+    body.end={dateTime:`${dateKey}T${pad(hh+1)}:${pad(mm||0)}:00`};
+    delete body.start.date;delete body.end.date;
+  }
+  try{
+    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(EMAILS[person])}/events`,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+tokens[person].access_token,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(r.ok){ev.synced=true;toast(`Pushed to ${NAMES[person]}'s Google Calendar`);}
+  }catch(e){}
+}
 
 // ── Date helpers ───────────────────────────────────────────────────────────
 function getWeekDates(off){
@@ -335,10 +456,10 @@ function getMonthDates(off){
 function iso(d){return d.toISOString().slice(0,10)}
 function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}
 
-// ── View switcher ──────────────────────────────────────────────────────────
+// ── Views ──────────────────────────────────────────────────────────────────
 function setView(v){
   view=v;
-  document.querySelectorAll('.view-tab').forEach((t,i)=>{t.classList.toggle('active',['week','day','month'][i]===v)});
+  document.querySelectorAll('.view-tab').forEach((t,i)=>t.classList.toggle('active',['week','day','month'][i]===v));
   render();
 }
 function changePeriod(d){
@@ -346,10 +467,10 @@ function changePeriod(d){
   else if(view==='day')dayOffset+=d;
   else monthOffset+=d;
   render();
+  if(view==='week')PERSONS.forEach(p=>{if(isConnected(p))fetchGoogleEvents(p)});
 }
 function goToday(){weekOffset=0;dayOffset=0;monthOffset=0;render()}
 
-// ── Render dispatcher ──────────────────────────────────────────────────────
 function render(){
   if(view==='week')renderWeek();
   else if(view==='day')renderDay();
@@ -357,12 +478,10 @@ function render(){
   renderTasks();
 }
 
-// ── Week view ──────────────────────────────────────────────────────────────
 function renderWeek(){
   const dates=getWeekDates(weekOffset);
   const opts={month:'short',day:'numeric'};
   document.getElementById('periodLabel').textContent=dates[0].toLocaleDateString('en-GB',opts)+' – '+dates[6].toLocaleDateString('en-GB',opts);
-
   document.getElementById('calBody').innerHTML=`
     <div class="grid-wrapper">
       <div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)">
@@ -375,7 +494,9 @@ function renderWeek(){
           ${dates.map(d=>{
             const k=iso(d);const evs=(events[k]||[]).filter(e=>e.person===p);
             return `<div class="day-cell${isToday(d)?' today-col':''}" onclick="openEventModal('${p}','${k}',event)">
-              ${evs.map(ev=>`<div class="event-chip bg-${p}" onclick="editEvent(event,'${ev.id}','${k}')">${ev.time?`<i class='ti ti-clock'></i>`:''}${trunc(ev.title,14)}</div>`).join('')}
+              ${evs.map(ev=>`<div class="event-chip bg-${p}${ev.fromGcal?' gcal':''}" onclick="editEvent(event,'${ev.id}','${k}')" title="${ev.title}${ev.fromGcal?' (Google Calendar)':''}">
+                ${ev.fromGcal?`<i class='ti ti-calendar' style='font-size:8px'></i>`:''}${ev.time?`<i class='ti ti-clock'></i>`:''}${trunc(ev.title,14)}
+              </div>`).join('')}
               <button class="add-btn"><i class="ti ti-plus"></i></button>
             </div>`;
           }).join('')}
@@ -393,7 +514,6 @@ function renderWeek(){
     </div>`;
 }
 
-// ── Day view ───────────────────────────────────────────────────────────────
 function renderDay(){
   const d=getDayDate(dayOffset);const k=iso(d);
   document.getElementById('periodLabel').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
@@ -402,22 +522,22 @@ function renderDay(){
     <div class="day-view-grid">
       <div class="day-col-headers" style="display:grid;grid-template-columns:80px repeat(4,1fr)">
         <div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>
-        ${PERSONS.map(p=>`<div class="day-col-hdr person-color-${p}" style="background:var(--${p}-light)">${NAMES[p]}</div>`).join('')}
+        ${PERSONS.map(p=>`<div class="day-col-hdr person-color-${p}" style="background:var(--${p}-light)">${NAMES[p]}${isConnected(p)?` <i class='ti ti-calendar-check' style='font-size:10px'></i>`:''}</div>`).join('')}
       </div>
       <div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px">
         <div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center"><i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i><span style="font-size:9px;color:var(--muted);margin-top:2px">Events</span></div>
         ${PERSONS.map(p=>{
           const evs=(events[k]||[]).filter(e=>e.person===p);
           return `<div class="day-view-cell" onclick="openEventModal('${p}','${k}',event)">
-            ${evs.map(ev=>`<div class="event-chip bg-${p}" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,'${ev.id}','${k}')">
-              ${ev.time?`<i class='ti ti-clock'></i><strong>${ev.time}</strong> `:''}${ev.title}
+            ${evs.map(ev=>`<div class="event-chip bg-${p}${ev.fromGcal?' gcal':''}" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,'${ev.id}','${k}')">
+              ${ev.fromGcal?`<i class='ti ti-calendar'></i>`:''}${ev.time?`<strong>${ev.time}</strong> `:''}${ev.title}
             </div>`).join('')}
             <button class="add-btn" style="opacity:.4"><i class="ti ti-plus"></i></button>
           </div>`;
         }).join('')}
       </div>
       <div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none">
-        <div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i><span style="font-size:9px;color:var(--abel-dark);margin-left:3px">Dinner</span></div>
+        <div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div>
         <div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal('${k}')">
           ${dn.meal?`<div style="font-size:13px;font-weight:500">${dn.meal}</div>`:`<div style="font-size:11px;color:var(--muted);font-style:italic">Tap to set dinner…</div>`}
           ${dn.cook?`<div class="cook-badge bg-${dn.cook}" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class='ti ti-chef-hat'></i> ${NAMES[dn.cook]} cooks tonight</div>`:''}
@@ -426,9 +546,8 @@ function renderDay(){
     </div>`;
 }
 
-// ── Month view ─────────────────────────────────────────────────────────────
 function renderMonth(){
-  const {dates,month}=getMonthDates(monthOffset);
+  const{dates,month}=getMonthDates(monthOffset);
   document.getElementById('periodLabel').textContent=month.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
   document.getElementById('calBody').innerHTML=`
     <div class="month-grid">
@@ -439,10 +558,7 @@ function renderMonth(){
           const dayEvs=events[k]||[];const dn=dinners[k]||{};
           return `<div class="month-cell${!inMonth?' other-month':''}${isToday(d)?' today-col':''}" onclick="goToDay('${k}')">
             <div class="month-day-num">${d.getDate()}</div>
-            ${PERSONS.map(p=>{
-              const pe=dayEvs.filter(e=>e.person===p);
-              return pe.map(ev=>`<div class="month-ev-chip bg-${p}">${trunc(ev.title,12)}</div>`).join('');
-            }).join('')}
+            ${PERSONS.map(p=>dayEvs.filter(e=>e.person===p).map(ev=>`<div class="month-ev-chip bg-${p}">${trunc(ev.title,12)}</div>`).join('')).join('')}
             ${dn.meal?`<div class="month-dinner"><i class='ti ti-soup' style="font-size:8px"></i>${trunc(dn.meal,12)}</div>`:''}
           </div>`;
         }).join('')}
@@ -451,12 +567,11 @@ function renderMonth(){
 }
 
 function goToDay(isoStr){
-  const target=new Date(isoStr);const today=new Date();
+  const target=new Date(isoStr),today=new Date();
   dayOffset=Math.round((target-today)/(1000*60*60*24));
   setView('day');
 }
 
-// ── Tasks ──────────────────────────────────────────────────────────────────
 function renderTasks(){
   document.getElementById('taskList').innerHTML=PERSONS.map(p=>{
     const pt=tasks[p]||[];
@@ -471,23 +586,23 @@ function renderTasks(){
   }).join('');
 }
 
-// ── Modals ─────────────────────────────────────────────────────────────────
+// ── Event modal ────────────────────────────────────────────────────────────
 function openEventModal(person,dateKey,e){
   if(e)e.stopPropagation();
   editingEvent=null;editingCell={person,dateKey};
   document.getElementById('evPerson').value=person;
   document.getElementById('evTitle').value='';
   document.getElementById('evTime').value='';
-  document.getElementById('evSync').value=googleConnected?'yes':'no';
+  document.getElementById('evSync').value=isConnected(person)?'yes':'no';
   document.getElementById('evDeleteBtn').style.display='none';
   document.getElementById('evModalTitle').innerHTML=`<i class='ti ti-calendar-plus'></i> Add event`;
   document.getElementById('eventModal').classList.add('open');
   setTimeout(()=>document.getElementById('evTitle').focus(),100);
 }
-
 function editEvent(e,evId,dateKey){
   e.stopPropagation();
   const ev=(events[dateKey]||[]).find(x=>x.id===evId);if(!ev)return;
+  if(ev.fromGcal){toast('This event is from Google Calendar — edit it there directly');return;}
   editingEvent={evId,dateKey};editingCell=null;
   document.getElementById('evPerson').value=ev.person;
   document.getElementById('evTitle').value=ev.title;
@@ -497,14 +612,12 @@ function editEvent(e,evId,dateKey){
   document.getElementById('evModalTitle').innerHTML=`<i class='ti ti-pencil'></i> Edit event`;
   document.getElementById('eventModal').classList.add('open');
 }
-
 function saveEvent(){
   const person=document.getElementById('evPerson').value;
   const title=document.getElementById('evTitle').value.trim();
   const time=document.getElementById('evTime').value.trim();
   const doSync=document.getElementById('evSync').value==='yes';
   if(!title)return;
-
   if(editingEvent){
     const ev=(events[editingEvent.dateKey]||[]).find(x=>x.id===editingEvent.evId);
     if(ev){ev.person=person;ev.title=title;ev.time=time;}
@@ -513,15 +626,14 @@ function saveEvent(){
     if(!events[k])events[k]=[];
     const newEv={id:uid(),person,title,time,synced:false};
     events[k].push(newEv);
-    if(doSync&&googleConnected) pushToGoogleCalendar(newEv,editingCell.dateKey);
+    if(doSync)pushToGoogleCalendar(newEv,k);
   }
-  saveData();closeModal('eventModal');render();toast('Event saved'+(doSync&&googleConnected?' & synced to Google':''));
+  saveData();closeModal('eventModal');toast('Gebeurtenis opgeslagen');
 }
-
 function deleteEvent(){
   const{evId,dateKey}=editingEvent;
   events[dateKey]=(events[dateKey]||[]).filter(x=>x.id!==evId);
-  saveData();closeModal('eventModal');render();toast('Event deleted');
+  saveData();closeModal('eventModal');toast('Gebeurtenis verwijderd');
 }
 
 function openDinnerModal(key){
@@ -537,11 +649,11 @@ function saveDinner(){
   const cook=document.getElementById('dinnerCook').value;
   if(meal)dinners[editingDinnerKey]={meal,cook};
   else delete dinners[editingDinnerKey];
-  saveData();closeModal('dinnerModal');render();toast('Dinner updated');
+  saveData();closeModal('dinnerModal');toast('Diner bijgewerkt');
 }
 function clearDinner(){
   delete dinners[editingDinnerKey];
-  saveData();closeModal('dinnerModal');render();toast('Dinner cleared');
+  saveData();closeModal('dinnerModal');toast('Diner verwijderd');
 }
 
 function openTaskModal(person){
@@ -556,11 +668,11 @@ function saveTask(){
   if(!text)return;
   if(!tasks[person])tasks[person]=[];
   tasks[person].push({id:uid(),text,done:false});
-  saveData();closeModal('taskModal');renderTasks();toast('Task added');
+  saveData();closeModal('taskModal');toast('Taak toegevoegd');
 }
 function toggleTask(person,id){
   const t=(tasks[person]||[]).find(x=>x.id===id);
-  if(t){t.done=!t.done;saveData();renderTasks();}
+  if(t){t.done=!t.done;saveData();}
 }
 
 function closeModal(id){
@@ -578,105 +690,6 @@ document.addEventListener('keydown',e=>{
     else if(document.getElementById('taskModal').classList.contains('open'))saveTask();
   }
 });
-
-// ── Google Calendar OAuth & sync ───────────────────────────────────────────
-const GC_CLIENT_ID='627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
-const GC_SCOPE='https://www.googleapis.com/auth/calendar.events';
-const MS_CLIENT_ID='YOUR_MICROSOFT_CLIENT_ID';
-
-function connectCal(type){
-  if(type==='google'){
-    if(googleConnected){toast('Google Calendar already connected');return;}
-    const params=new URLSearchParams({
-      client_id:GC_CLIENT_ID,
-      redirect_uri:'https://wmluitse-ai21.github.io/family-hub/',
-      response_type:'token',
-      scope:GC_SCOPE,
-      prompt:'consent',
-      include_granted_scopes:'true'
-    });
-    window.location.href='https://accounts.google.com/o/oauth2/auth?'+params.toString();
-  } else {
-    if(outlookConnected){toast('Outlook already connected');return;}
-    toast('Outlook sync coming soon — add your Azure Client ID in the code.');
-  }
-}
-
-function handleOAuthCallback(){
-  const hash=window.location.hash;
-  if(!hash) return;
-  const params=new URLSearchParams(hash.replace('#',''));
-  const token=params.get('access_token');
-  const error=params.get('error');
-  if(error){toast('Google login failed: '+error);return;}
-  if(token){
-    googleTokens.access_token=token;
-    googleTokens.expires_at=Date.now()+(parseInt(params.get('expires_in')||3600)*1000);
-    googleConnected=true;
-    document.getElementById('gBtn').classList.add('connected');
-    document.getElementById('gBtn').innerHTML=`<i class='ti ti-check'></i> Google ✓`;
-    window.history.replaceState(null,null,window.location.pathname);
-    saveData();
-    toast('✅ Google Calendar connected!');
-    fetchGoogleEvents();
-  }
-}
-
-async function fetchGoogleEvents(){
-  if(!googleConnected||!googleTokens.access_token) return;
-  const dates=getWeekDates(weekOffset);
-  const timeMin=dates[0].toISOString();
-  const timeMax=dates[6].toISOString();
-  for(const person of PERSONS){
-    const calId=getCalendarIdForPerson(person);
-    try{
-      const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,{
-        headers:{'Authorization':'Bearer '+googleTokens.access_token}
-      });
-      if(!r.ok) continue;
-      const data=await r.json();
-      (data.items||[]).forEach(item=>{
-        const dateStr=(item.start.date||item.start.dateTime||'').slice(0,10);
-        if(!dateStr) return;
-        if(!events[dateStr]) events[dateStr]=[];
-        if(!events[dateStr].find(e=>e.gcalId===item.id)){
-          events[dateStr].push({
-            id:uid(),gcalId:item.id,person,
-            title:item.summary||'(no title)',
-            time:item.start.dateTime?item.start.dateTime.slice(11,16):'',
-            synced:true
-          });
-        }
-      });
-    }catch(e){}
-  }
-  saveData();render();toast('Google Calendar events loaded!');
-}
-
-async function pushToGoogleCalendar(ev, dateKey){
-  if(!googleConnected||!googleTokens.access_token)return;
-  const calId=getCalendarIdForPerson(ev.person);
-  const[y,m,d]=dateKey.split('-').map(Number);
-  const body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
-  if(ev.time){
-    const[hh,mm]=(ev.time.split('–')[0]||ev.time).trim().split(':').map(Number);
-    body.start={dateTime:`${dateKey}T${String(hh).padStart(2,'0')}:${String(mm||0).padStart(2,'0')}:00`};
-    body.end={dateTime:`${dateKey}T${String(hh+1).padStart(2,'0')}:${String(mm||0).padStart(2,'0')}:00`};
-  }
-  try{
-    const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`,{
-      method:'POST',headers:{'Authorization':'Bearer '+googleTokens.access_token,'Content-Type':'application/json'},
-      body:JSON.stringify(body)
-    });
-    if(r.ok){ev.synced=true;toast('Pushed to '+NAMES[ev.person]+"'s Google Calendar");}
-  }catch(e){}
-}
-
-function getCalendarIdForPerson(person){
-  // Replace with each family member's Google Calendar ID (their email)
-  const ids={mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
-  return ids[person]||'primary';
-}
 
 function trunc(s,n){return s&&s.length>n?s.slice(0,n-1)+'…':s}
 function toast(msg){
