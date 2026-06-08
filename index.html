@@ -357,15 +357,45 @@ async function fetchAllGcalEvents(){
         if(!r.ok){pageToken=null;break;}
         const data=await r.json();
         (data.items||[]).forEach(item=>{
-          const dateStr=(item.start.date||item.start.dateTime||'').slice(0,10);
+          // Handle both all-day (date) and timed (dateTime) events
+          // For dateTime with timezone offset, extract local date correctly
+          let dateStr='';
+          if(item.start.date){
+            dateStr=item.start.date; // all-day: already YYYY-MM-DD
+          } else if(item.start.dateTime){
+            // Parse local date from dateTime, respecting timezone offset
+            const dt=item.start.dateTime;
+            // If offset present (e.g. 2026-06-15T16:00:00+02:00), use local date part
+            // by converting to the local date in that timezone
+            const localDate=new Date(dt);
+            // Use the date from the dateTime string directly if it has offset
+            if(dt.includes('+') || (dt.includes('-') && dt.lastIndexOf('-')>7)){
+              dateStr=dt.slice(0,10);
+            } else {
+              dateStr=localDate.toISOString().slice(0,10);
+            }
+          }
           if(!dateStr)return;
           if(!events[dateStr])events[dateStr]=[];
           if(!events[dateStr].find(e=>e.gcalId===item.id)){
+            let timeStr='';
+            if(item.start.dateTime){
+              // Extract HH:MM from local time in the dateTime string
+              const dt=item.start.dateTime;
+              const tMatch=dt.match(/T(\d{2}:\d{2})/);
+              if(tMatch)timeStr=tMatch[1];
+            }
+            let endTimeStr='';
+            if(item.end&&item.end.dateTime){
+              const et=item.end.dateTime;
+              const tMatch=et.match(/T(\d{2}:\d{2})/);
+              if(tMatch)endTimeStr=tMatch[1];
+            }
             events[dateStr].push({
               id:uid(),gcalId:item.id,gcalCalId:CALIDS[p],person:p,fromGcal:true,
               title:item.summary||'(geen titel)',
-              time:item.start.dateTime?item.start.dateTime.slice(11,16):'',
-              endTime:item.end&&item.end.dateTime?item.end.dateTime.slice(11,16):'',
+              time:timeStr,
+              endTime:endTimeStr,
               synced:true
             });
           }
