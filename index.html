@@ -16,31 +16,29 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#fdf8f3;color:#3a2e2
   --bg:#fdf8f3;--card:#fffcf8;--border:#ede5d8;--text:#3a2e24;--muted:#8a7a6a
 }
 .app{display:flex;flex-direction:column;height:100vh}
-header{background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
 .logo{display:flex;align-items:center;gap:8px}
 .logo i{font-size:20px;color:var(--abel)}
 .logo h1{font-size:16px;font-weight:600}
 .view-tabs{display:flex;background:#f0e9df;border-radius:8px;padding:3px;gap:2px}
-.view-tab{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);transition:all .15s}
+.view-tab{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted)}
 .view-tab.active{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .week-nav{display:flex;align-items:center;gap:6px;margin-left:auto}
 .week-nav button{background:none;border:1px solid var(--border);border-radius:7px;padding:5px 9px;cursor:pointer;color:var(--text);font-size:12px}
-.week-nav button:hover{background:var(--border)}
 .week-label{font-size:12px;font-weight:500;min-width:140px;text-align:center}
-.sync-btn{display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 12px;border-radius:20px;border:1.5px solid #ea4335;background:var(--card);cursor:pointer;color:#ea4335;font-weight:600}
-.sync-btn.connected{border-color:#1d9e75;color:#1d9e75;background:var(--pepijn-light)}
-.wake-indicator{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);padding:4px 8px;border-radius:6px;border:1px solid var(--border)}
-.wake-dot{width:7px;height:7px;border-radius:50%;background:#ccc}
+.hdr-btn{display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-weight:600;color:var(--text)}
+.hdr-btn.google{border-color:#ea4335;color:#ea4335}
+.hdr-btn.google.connected{border-color:#1d9e75;color:#1d9e75;background:var(--pepijn-light)}
+.hdr-btn.refresh{border-color:var(--dad);color:var(--dad)}
+.wake-dot{width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block;margin-right:3px}
 .wake-dot.active{background:#1d9e75}
-.sync-indicator{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
-.sync-indicator i{font-size:12px}
-.sync-indicator.syncing{color:var(--abel)}
+.sync-status{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:3px}
 
 .main{flex:1;display:flex;overflow:hidden}
 .calendar-area{flex:1;overflow:auto;padding:12px}
-.sidebar{width:220px;border-left:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sidebar{width:215px;border-left:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
 .sidebar-inner{flex:1;overflow-y:auto;padding:12px}
-.sidebar h3{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:5px;color:var(--text)}
+.sidebar h3{font-size:12px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:5px}
 
 .family-avatars{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
 .avatar-chip{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 4px;border-radius:20px;font-size:11px;font-weight:600}
@@ -62,7 +60,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .day-cell:last-child{border-right:none}
 .day-cell.today-col{background:rgba(186,117,23,.04)}
 .event-chip{border-radius:4px;padding:2px 5px;font-size:9px;font-weight:500;display:flex;align-items:center;gap:2px;line-height:1.4;cursor:pointer}
-.event-chip.gcal{border-left:2px solid currentColor;opacity:.85}
+.event-chip.gcal{border-left:2px solid rgba(0,0,0,.2)}
 .add-btn{opacity:0;font-size:14px;color:var(--muted);cursor:pointer;margin-top:auto;align-self:flex-end;border:none;background:none;padding:1px 3px;line-height:1}
 .day-cell:hover .add-btn{opacity:1}
 
@@ -72,10 +70,11 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .dinner-cell:hover{background:var(--abel-light)}
 .dinner-cell:last-child{border-right:none}
 .dinner-cell.today-col{background:rgba(186,117,23,.05)}
-.dinner-cell .meal{font-size:10px;color:var(--text);font-weight:500;line-height:1.3}
-.dinner-cell .no-meal{font-size:9px;color:var(--muted);font-style:italic}
+.meal{font-size:10px;color:var(--text);font-weight:500;line-height:1.3}
+.no-meal{font-size:9px;color:var(--muted);font-style:italic}
 .cook-badge{display:inline-flex;align-items:center;gap:3px;border-radius:10px;padding:1px 5px;font-size:9px;font-weight:600}
 
+/* Day view */
 .day-view-grid{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .day-col-hdr{padding:10px 8px;text-align:center;font-size:11px;font-weight:700;border-right:.5px solid var(--border)}
 .day-col-hdr:last-child{border-right:none}
@@ -85,6 +84,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .day-view-cell:hover{background:#fdf5ec}
 .day-view-cell:last-child{border-right:none}
 
+/* Month view */
 .month-grid{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
 .month-weekdays{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)}
 .month-weekday{padding:7px;text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
@@ -98,6 +98,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .month-ev-chip{font-size:8px;border-radius:3px;padding:1px 4px;font-weight:500;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:1px}
 .month-dinner{font-size:8px;color:var(--abel-dark);background:var(--abel-light);border-radius:3px;padding:1px 4px;margin-top:2px;display:flex;align-items:center;gap:2px}
 
+/* Tasks */
 .task-person{margin-bottom:10px}
 .task-person-hdr{display:flex;align-items:center;gap:5px;margin-bottom:4px;font-size:10px;font-weight:700}
 .task-item{display:flex;align-items:flex-start;gap:5px;margin-bottom:3px;padding:3px 5px;border-radius:5px;cursor:pointer}
@@ -105,11 +106,11 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .task-check{width:13px;height:13px;border-radius:3px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .task-check.done{background:var(--pepijn);border-color:var(--pepijn)}
 .task-check.done i{font-size:8px;color:#fff}
-.task-text{font-size:10px;color:var(--text);line-height:1.4}
+.task-text{font-size:10px;line-height:1.4}
 .task-text.done{text-decoration:line-through;color:var(--muted)}
 .add-task-btn{font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;padding:2px 3px;display:flex;align-items:center;gap:2px}
-.add-task-btn:hover{color:var(--text)}
 
+/* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,46,36,.35);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--card);border-radius:14px;padding:18px;width:320px;border:1px solid var(--border)}
@@ -121,10 +122,10 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .btn-cancel{padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:none;cursor:pointer;font-size:12px;color:var(--muted)}
 .btn-save{padding:6px 14px;border-radius:7px;border:none;background:var(--abel);color:#fff;cursor:pointer;font-size:12px;font-weight:600}
 .btn-delete{padding:6px 14px;border-radius:7px;border:none;background:#fee2e2;color:#991f1f;cursor:pointer;font-size:12px;margin-right:auto}
+.gcal-badge{font-size:9px;background:var(--dad-light);color:var(--dad-dark);border-radius:8px;padding:2px 7px;margin-left:auto}
 
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#3a2e24;color:#fff;padding:9px 18px;border-radius:18px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200}
 .toast.show{opacity:1}
-.loading{display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);font-size:13px;gap:8px}
 
 .person-color-mom{color:var(--mom)}.bg-mom{background:var(--mom-light);color:var(--mom-dark)}
 .person-color-dad{color:var(--dad)}.bg-dad{background:var(--dad-light);color:var(--dad-dark)}
@@ -147,11 +148,11 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
       <button onclick="changePeriod(1)"><i class="ti ti-chevron-right"></i></button>
       <button onclick="goToday()" style="font-size:11px;padding:5px 9px">Vandaag</button>
     </div>
-    <button class="sync-btn" id="gcalBtn" onclick="connectGoogle()">
-      <i class="ti ti-calendar"></i> <span id="gcalBtnLabel">Google Agenda</span>
+    <button class="hdr-btn google" id="gcalBtn" onclick="connectGoogle()">
+      <i class="ti ti-calendar"></i><span id="gcalLbl">Google Agenda</span>
     </button>
-    <div class="sync-indicator" id="syncIndicator"><i class="ti ti-cloud"></i><span id="syncLabel">Gesynchroniseerd</span></div>
-    <div class="wake-indicator"><div class="wake-dot" id="wakeDot"></div><span>Scherm aan</span></div>
+    <button class="hdr-btn refresh" onclick="manualRefresh()"><i class="ti ti-refresh"></i> Vernieuwen</button>
+    <div class="sync-status"><div class="wake-dot" id="wakeDot"></div><span id="syncLbl">Laden…</span></div>
   </header>
 
   <div class="main">
@@ -162,24 +163,24 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
         <div class="avatar-chip" style="background:var(--pepijn-light)"><div class="avatar-dot" style="background:var(--pepijn)">P</div><span style="color:var(--pepijn-dark)">Pepijn</span></div>
         <div class="avatar-chip" style="background:var(--abel-light)"><div class="avatar-dot" style="background:var(--abel)">A</div><span style="color:var(--abel-dark)">Abel</span></div>
       </div>
-      <div id="calBody"><div class="loading"><i class="ti ti-loader ti-spin"></i> Laden...</div></div>
+      <div id="calBody"></div>
     </div>
     <div class="sidebar">
       <div class="sidebar-inner">
-        <h3><i class="ti ti-checklist"></i> Taken deze week</h3>
+        <h3><i class="ti ti-checklist" style="color:var(--muted)"></i> Taken deze week</h3>
         <div id="taskList"></div>
       </div>
       <div style="padding:10px 12px;border-top:1px solid var(--border)">
-        <p style="font-size:10px;color:var(--muted);line-height:1.6">Klik op een cel om een afspraak toe te voegen. Klik op het diner om de maaltijd en kok in te stellen.</p>
+        <p style="font-size:10px;color:var(--muted);line-height:1.6">Klik op een cel voor een afspraak. Klik op een afspraak om te bewerken. Klik op het diner om de maaltijd in te stellen.</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Gebeurtenis modal -->
+<!-- Afspraak modal -->
 <div class="modal-overlay" id="eventModal">
   <div class="modal">
-    <h2 id="evModalTitle"><i class="ti ti-calendar-plus"></i> Afspraak toevoegen</h2>
+    <h2 id="evTitle_hdr"><i class="ti ti-calendar-plus"></i> Afspraak toevoegen <span class="gcal-badge" id="gcalBadge" style="display:none">Google Agenda</span></h2>
     <label>Persoon</label>
     <select id="evPerson">
       <option value="mom">Mama</option><option value="dad">Papa</option>
@@ -189,10 +190,10 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
     <input type="text" id="evTitle" placeholder="bijv. Voetbaltraining"/>
     <label>Tijd (optioneel)</label>
     <input type="text" id="evTime" placeholder="bijv. 15:00 – 16:30"/>
-    <label>Synchroniseren met Google Agenda?</label>
+    <label id="evSyncLabel">Synchroniseren met Google Agenda?</label>
     <select id="evSync"><option value="yes">Ja – naar Google Agenda sturen</option><option value="no">Nee – alleen lokaal</option></select>
     <div class="modal-btns">
-      <button class="btn-delete" id="evDeleteBtn" onclick="deleteEvent()" style="display:none"><i class="ti ti-trash"></i></button>
+      <button class="btn-delete" id="evDeleteBtn" onclick="deleteEvent()" style="display:none"><i class="ti ti-trash"></i> Verwijderen</button>
       <button class="btn-cancel" onclick="closeModal('eventModal')">Annuleren</button>
       <button class="btn-save" onclick="saveEvent()">Opslaan</button>
     </div>
@@ -242,13 +243,8 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 <script>
 const PERSONS=['mom','dad','pepijn','abel'];
 const NAMES={mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
-const CALIDS={
-  mom:'w.m.luitse@gmail.com',
-  dad:'t.h.rodenburg@gmail.com',
-  pepijn:'pepijn.simen.rodenburg@gmail.com',
-  abel:'abel.david.rodenburg@gmail.com'
-};
-const LOGIN_EMAIL='w.m.luitse@gmail.com';
+const CALIDS={mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
+const LOGIN_HINT='w.m.luitse@gmail.com';
 const DAYS=['Ma','Di','Wo','Do','Vr','Za','Zo'];
 const GC_CLIENT_ID='627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
 const GC_SCOPE='https://www.googleapis.com/auth/calendar.events';
@@ -258,25 +254,19 @@ let view='week',weekOffset=0,dayOffset=0,monthOffset=0;
 let events={},dinners={},tasks={mom:[],dad:[],pepijn:[],abel:[]};
 let editingEvent=null,editingDinnerKey=null,editingCell=null;
 let gcalToken=null,gcalExpiry=0;
-let syncPollTimer=null;
+let pollTimer=null;
 
 // ── Wake Lock ──────────────────────────────────────────────────────────────
 async function requestWakeLock(){
-  try{
-    if('wakeLock' in navigator){
-      const wl=await navigator.wakeLock.request('screen');
-      document.getElementById('wakeDot').classList.add('active');
-      wl.addEventListener('release',()=>document.getElementById('wakeDot').classList.remove('active'));
-    }
-  }catch(e){}
+  try{if('wakeLock' in navigator){const wl=await navigator.wakeLock.request('screen');document.getElementById('wakeDot').classList.add('active');wl.addEventListener('release',()=>document.getElementById('wakeDot').classList.remove('active'));}}catch(e){}
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){requestWakeLock();loadShared();}});
 
-// ── Shared storage (syncs across devices) ─────────────────────────────────
+// ── Shared storage ─────────────────────────────────────────────────────────
 async function loadShared(){
-  setSyncLabel('Laden…',true);
+  setSyncLbl('Laden…');
   try{
-    const [re,rd,rt,rg]=await Promise.all([
+    const[re,rd,rt,rg]=await Promise.all([
       window.storage.get('fh-events',true),
       window.storage.get('fh-dinners',true),
       window.storage.get('fh-tasks',true),
@@ -284,19 +274,16 @@ async function loadShared(){
     ]);
     if(re)events=JSON.parse(re.value);
     if(rd)dinners=JSON.parse(rd.value);
-    if(rt)tasks=JSON.parse(rt.value);
+    if(rt){const t=JSON.parse(rt.value);tasks={mom:t.mom||[],dad:t.dad||[],pepijn:t.pepijn||[],abel:t.abel||[]};}
     if(rg){const g=JSON.parse(rg.value);gcalToken=g.token||null;gcalExpiry=g.expiry||0;}
-    if(!tasks.mom)tasks.mom=[];if(!tasks.dad)tasks.dad=[];
-    if(!tasks.pepijn)tasks.pepijn=[];if(!tasks.abel)tasks.abel=[];
   }catch(e){}
-  setSyncLabel('Gesynchroniseerd',false);
   updateGcalBtn();
+  setSyncLbl('Gesynchroniseerd');
   render();
-  if(isGcalConnected())fetchAllGcalEvents();
 }
 
 async function saveShared(){
-  setSyncLabel('Opslaan…',true);
+  setSyncLbl('Opslaan…');
   try{
     await Promise.all([
       window.storage.set('fh-events',JSON.stringify(events),true),
@@ -304,119 +291,142 @@ async function saveShared(){
       window.storage.set('fh-tasks',JSON.stringify(tasks),true)
     ]);
   }catch(e){}
-  setSyncLabel('Gesynchroniseerd',false);
+  setSyncLbl('Gesynchroniseerd');
   render();
 }
 
-async function saveGcalToken(){
-  try{await window.storage.set('fh-gcal',JSON.stringify({token:gcalToken,expiry:gcalExpiry}),false);}catch(e){}
-}
+function setSyncLbl(t){document.getElementById('syncLbl').textContent=t;}
+function startPolling(){if(pollTimer)clearInterval(pollTimer);pollTimer=setInterval(()=>loadShared(),20000);}
+async function manualRefresh(){setSyncLbl('Vernieuwen…');await loadShared();if(isGcalConnected())await fetchAllGcalEvents();toast('Vernieuwd ✓');}
 
-function setSyncLabel(txt,busy){
-  document.getElementById('syncLabel').textContent=txt;
-  document.getElementById('syncIndicator').classList.toggle('syncing',busy);
-}
-
-// ── Poll for changes every 30s ─────────────────────────────────────────────
-function startPolling(){
-  if(syncPollTimer)clearInterval(syncPollTimer);
-  syncPollTimer=setInterval(()=>loadShared(),30000);
-}
-
-// ── Google Calendar ────────────────────────────────────────────────────────
+// ── Google Calendar OAuth ──────────────────────────────────────────────────
 function isGcalConnected(){return !!(gcalToken&&gcalExpiry>Date.now())}
-
 function updateGcalBtn(){
-  const btn=document.getElementById('gcalBtn');
-  const lbl=document.getElementById('gcalBtnLabel');
-  if(isGcalConnected()){
-    btn.classList.add('connected');
-    lbl.textContent='Agenda ✓';
-  }else{
-    btn.classList.remove('connected');
-    lbl.textContent='Google Agenda';
-  }
+  const btn=document.getElementById('gcalBtn'),lbl=document.getElementById('gcalLbl');
+  if(isGcalConnected()){btn.classList.add('connected');lbl.textContent='Agenda ✓';}
+  else{btn.classList.remove('connected');lbl.textContent='Google Agenda';}
 }
-
 function connectGoogle(){
   if(isGcalConnected()){toast('Google Agenda is al gekoppeld');return;}
   sessionStorage.setItem('gcal_pending','1');
-  const params=new URLSearchParams({
-    client_id:GC_CLIENT_ID,
-    redirect_uri:REDIRECT_URI,
-    response_type:'token',
-    scope:GC_SCOPE,
-    prompt:'consent',
-    login_hint:LOGIN_EMAIL
-  });
-  window.location.href='https://accounts.google.com/o/oauth2/auth?'+params.toString();
+  const p=new URLSearchParams({client_id:GC_CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'token',scope:GC_SCOPE,prompt:'consent',login_hint:LOGIN_HINT});
+  window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
 }
-
 function handleOAuthCallback(){
   const hash=window.location.hash;
   if(!hash||!sessionStorage.getItem('gcal_pending'))return;
-  const params=new URLSearchParams(hash.replace('#',''));
-  const token=params.get('access_token');
-  if(!token)return;
+  const p=new URLSearchParams(hash.replace('#',''));
+  const token=p.get('access_token');if(!token)return;
   sessionStorage.removeItem('gcal_pending');
-  gcalToken=token;
-  gcalExpiry=Date.now()+(parseInt(params.get('expires_in')||3600)*1000);
+  gcalToken=token;gcalExpiry=Date.now()+(parseInt(p.get('expires_in')||3600)*1000);
   window.history.replaceState(null,null,window.location.pathname);
-  saveGcalToken();
-  updateGcalBtn();
-  toast('✅ Google Agenda gekoppeld!');
+  try{window.storage.set('fh-gcal',JSON.stringify({token:gcalToken,expiry:gcalExpiry}),false);}catch(e){}
+  updateGcalBtn();toast('✅ Google Agenda gekoppeld!');
   fetchAllGcalEvents();
 }
 
+// ── Fetch ALL Google Calendar events (full year) ───────────────────────────
 async function fetchAllGcalEvents(){
   if(!isGcalConnected())return;
-  const dates=getWeekDates(weekOffset);
-  const timeMin=new Date(dates[0]);timeMin.setHours(0,0,0,0);
-  const timeMax=new Date(dates[6]);timeMax.setHours(23,59,59,999);
-  // clear old gcal events for this week
-  dates.forEach(d=>{
-    const k=iso(d);
+  setSyncLbl('Agenda ophalen…');
+  // 3 months back, 9 months forward = ~1 year
+  const timeMin=new Date();timeMin.setMonth(timeMin.getMonth()-3);timeMin.setHours(0,0,0,0);
+  const timeMax=new Date();timeMax.setMonth(timeMax.getMonth()+9);timeMax.setHours(23,59,59,999);
+
+  // Remove all old gcal events in this range
+  const cur=new Date(timeMin);
+  while(cur<=timeMax){
+    const k=iso(cur);
     if(events[k])events[k]=events[k].filter(e=>!e.fromGcal);
-  });
+    cur.setDate(cur.getDate()+1);
+  }
+
   for(const p of PERSONS){
-    try{
-      const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[p])}/events?timeMin=${timeMin.toISOString()}&timeMax=${timeMax.toISOString()}&singleEvents=true&orderBy=startTime`,{
-        headers:{'Authorization':'Bearer '+gcalToken}
-      });
-      if(r.status===401){gcalToken=null;gcalExpiry=0;saveGcalToken();updateGcalBtn();toast('Google sessie verlopen — opnieuw inloggen');return;}
-      if(!r.ok)continue;
-      const data=await r.json();
-      (data.items||[]).forEach(item=>{
-        const dateStr=(item.start.date||item.start.dateTime||'').slice(0,10);
-        if(!dateStr)return;
-        if(!events[dateStr])events[dateStr]=[];
-        if(!events[dateStr].find(e=>e.gcalId===item.id)){
-          events[dateStr].push({id:uid(),gcalId:item.id,person:p,fromGcal:true,
-            title:item.summary||'(geen titel)',
-            time:item.start.dateTime?item.start.dateTime.slice(11,16):'',synced:true});
-        }
-      });
-    }catch(e){}
+    let pageToken=null;
+    do{
+      try{
+        const params=new URLSearchParams({
+          timeMin:timeMin.toISOString(),timeMax:timeMax.toISOString(),
+          singleEvents:'true',orderBy:'startTime',maxResults:'2500'
+        });
+        if(pageToken)params.set('pageToken',pageToken);
+        const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[p])}/events?${params}`,{
+          headers:{'Authorization':'Bearer '+gcalToken}
+        });
+        if(r.status===401){gcalToken=null;gcalExpiry=0;try{window.storage.set('fh-gcal',JSON.stringify({token:null,expiry:0}),false);}catch(e){}updateGcalBtn();toast('Google sessie verlopen — opnieuw inloggen');return;}
+        if(!r.ok){pageToken=null;break;}
+        const data=await r.json();
+        (data.items||[]).forEach(item=>{
+          const dateStr=(item.start.date||item.start.dateTime||'').slice(0,10);
+          if(!dateStr)return;
+          if(!events[dateStr])events[dateStr]=[];
+          if(!events[dateStr].find(e=>e.gcalId===item.id)){
+            events[dateStr].push({
+              id:uid(),gcalId:item.id,gcalCalId:CALIDS[p],person:p,fromGcal:true,
+              title:item.summary||'(geen titel)',
+              time:item.start.dateTime?item.start.dateTime.slice(11,16):'',
+              endTime:item.end&&item.end.dateTime?item.end.dateTime.slice(11,16):'',
+              synced:true
+            });
+          }
+        });
+        pageToken=data.nextPageToken||null;
+      }catch(e){pageToken=null;}
+    }while(pageToken);
   }
   await saveShared();
+  setSyncLbl('Gesynchroniseerd');
 }
 
+// ── Push new event to Google Calendar ─────────────────────────────────────
 async function pushToGcal(ev,dateKey){
-  if(!isGcalConnected())return;
+  if(!isGcalConnected())return null;
   const body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
   if(ev.time){
     const[hh,mm]=(ev.time.split('–')[0]||ev.time).trim().split(':').map(Number);
     const pad=n=>String(n).padStart(2,'0');
+    const endH=ev.endTime?parseInt(ev.endTime.split(':')[0]):hh+1;
+    const endM=ev.endTime?parseInt(ev.endTime.split(':')[1]):mm||0;
     body.start={dateTime:`${dateKey}T${pad(hh)}:${pad(mm||0)}:00`};
-    body.end={dateTime:`${dateKey}T${pad(hh+1)}:${pad(mm||0)}:00`};
+    body.end={dateTime:`${dateKey}T${pad(endH)}:${pad(endM)}:00`};
   }
   try{
     const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[ev.person])}/events`,{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
+      method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
       body:JSON.stringify(body)
     });
-    if(r.ok){ev.synced=true;toast(`Naar Google Agenda van ${NAMES[ev.person]} gestuurd`);}
+    if(r.ok){const d=await r.json();return d.id;}
+  }catch(e){}
+  return null;
+}
+
+// ── Update existing Google Calendar event ─────────────────────────────────
+async function updateGcalEvent(ev,dateKey){
+  if(!isGcalConnected()||!ev.gcalId)return;
+  const body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
+  if(ev.time){
+    const[hh,mm]=(ev.time.split('–')[0]||ev.time).trim().split(':').map(Number);
+    const pad=n=>String(n).padStart(2,'0');
+    const endH=ev.endTime?parseInt(ev.endTime.split(':')[0]):hh+1;
+    const endM=ev.endTime?parseInt(ev.endTime.split(':')[1]):mm||0;
+    body.start={dateTime:`${dateKey}T${pad(hh)}:${pad(mm||0)}:00`};
+    body.end={dateTime:`${dateKey}T${pad(endH)}:${pad(endM)}:00`};
+  }
+  try{
+    await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[ev.person])}/events/${ev.gcalId}`,{
+      method:'PATCH',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+  }catch(e){}
+}
+
+// ── Delete Google Calendar event ───────────────────────────────────────────
+async function deleteGcalEvent(ev){
+  if(!isGcalConnected()||!ev.gcalId)return;
+  try{
+    await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALIDS[ev.person])}/events/${ev.gcalId}`,{
+      method:'DELETE',headers:{'Authorization':'Bearer '+gcalToken}
+    });
   }catch(e){}
 }
 
@@ -440,7 +450,7 @@ function iso(d){return d.toISOString().slice(0,10)}
 function isToday(d){const t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear()}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
 
-// ── Views ──────────────────────────────────────────────────────────────────
+// ── View management ────────────────────────────────────────────────────────
 function setView(v){
   view=v;
   document.querySelectorAll('.view-tab').forEach((t,i)=>t.classList.toggle('active',['week','day','month'][i]===v));
@@ -451,9 +461,8 @@ function changePeriod(d){
   else if(view==='day')dayOffset+=d;
   else monthOffset+=d;
   render();
-  if(view==='week'&&isGcalConnected())fetchAllGcalEvents();
 }
-function goToday(){weekOffset=0;dayOffset=0;monthOffset=0;render()}
+function goToday(){weekOffset=0;dayOffset=0;monthOffset=0;render();}
 function goToDay(isoStr){
   const target=new Date(isoStr),today=new Date();
   dayOffset=Math.round((target-today)/(1000*60*60*24));
@@ -467,11 +476,12 @@ function render(){
   renderTasks();
 }
 
+// ── Week view ──────────────────────────────────────────────────────────────
 function renderWeek(){
   const dates=getWeekDates(weekOffset);
-  const opts={month:'short',day:'numeric'};
   document.getElementById('periodLabel').textContent=
-    dates[0].toLocaleDateString('nl-NL',opts)+' – '+dates[6].toLocaleDateString('nl-NL',opts);
+    dates[0].toLocaleDateString('nl-NL',{month:'short',day:'numeric'})+' – '+
+    dates[6].toLocaleDateString('nl-NL',{month:'short',day:'numeric'});
   document.getElementById('calBody').innerHTML=`
     <div class="grid-wrapper">
       <div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)">
@@ -504,10 +514,10 @@ function renderWeek(){
     </div>`;
 }
 
+// ── Day view ───────────────────────────────────────────────────────────────
 function renderDay(){
   const d=getDayDate(dayOffset);const k=iso(d);
-  document.getElementById('periodLabel').textContent=
-    d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('periodLabel').textContent=d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
   const dn=dinners[k]||{};
   document.getElementById('calBody').innerHTML=`
     <div class="day-view-grid">
@@ -540,10 +550,10 @@ function renderDay(){
     </div>`;
 }
 
+// ── Month view ─────────────────────────────────────────────────────────────
 function renderMonth(){
   const{dates,month}=getMonthDates(monthOffset);
-  document.getElementById('periodLabel').textContent=
-    month.toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
+  document.getElementById('periodLabel').textContent=month.toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
   document.getElementById('calBody').innerHTML=`
     <div class="month-grid">
       <div class="month-weekdays">${DAYS.map(d=>`<div class="month-weekday">${d}</div>`).join('')}</div>
@@ -561,6 +571,7 @@ function renderMonth(){
     </div>`;
 }
 
+// ── Tasks ──────────────────────────────────────────────────────────────────
 function renderTasks(){
   document.getElementById('taskList').innerHTML=PERSONS.map(p=>{
     const pt=tasks[p]||[];
@@ -575,7 +586,7 @@ function renderTasks(){
   }).join('');
 }
 
-// ── Modals ─────────────────────────────────────────────────────────────────
+// ── Event modal ────────────────────────────────────────────────────────────
 function openEventModal(person,dateKey,e){
   if(e)e.stopPropagation();
   editingEvent=null;editingCell={person,dateKey};
@@ -583,51 +594,79 @@ function openEventModal(person,dateKey,e){
   document.getElementById('evTitle').value='';
   document.getElementById('evTime').value='';
   document.getElementById('evSync').value=isGcalConnected()?'yes':'no';
+  document.getElementById('evSync').parentElement.style.display='block';
+  document.getElementById('evSyncLabel').style.display='block';
   document.getElementById('evDeleteBtn').style.display='none';
-  document.getElementById('evModalTitle').innerHTML=`<i class='ti ti-calendar-plus'></i> Afspraak toevoegen`;
+  document.getElementById('gcalBadge').style.display='none';
+  document.getElementById('evTitle_hdr').innerHTML=`<i class='ti ti-calendar-plus'></i> Afspraak toevoegen`;
   document.getElementById('eventModal').classList.add('open');
   setTimeout(()=>document.getElementById('evTitle').focus(),100);
 }
+
 function editEvent(e,evId,dateKey){
   e.stopPropagation();
   const ev=(events[dateKey]||[]).find(x=>x.id===evId);if(!ev)return;
-  if(ev.fromGcal){toast('Dit is een Google Agenda afspraak — bewerk het daar');return;}
   editingEvent={evId,dateKey};editingCell=null;
   document.getElementById('evPerson').value=ev.person;
   document.getElementById('evTitle').value=ev.title;
-  document.getElementById('evTime').value=ev.time||'';
-  document.getElementById('evSync').value='no';
+  document.getElementById('evTime').value=ev.time||(ev.endTime?ev.time+' – '+ev.endTime:'');
   document.getElementById('evDeleteBtn').style.display='block';
-  document.getElementById('evModalTitle').innerHTML=`<i class='ti ti-pencil'></i> Afspraak bewerken`;
+  document.getElementById('gcalBadge').style.display=ev.fromGcal?'inline-flex':'none';
+  // Hide sync option when editing (sync handled automatically)
+  document.getElementById('evSync').parentElement.style.display='none';
+  document.getElementById('evSyncLabel').style.display='none';
+  document.getElementById('evTitle_hdr').innerHTML=`<i class='ti ti-pencil'></i> Afspraak bewerken`;
   document.getElementById('eventModal').classList.add('open');
+  setTimeout(()=>document.getElementById('evTitle').focus(),100);
 }
+
 async function saveEvent(){
   const person=document.getElementById('evPerson').value;
   const title=document.getElementById('evTitle').value.trim();
   const time=document.getElementById('evTime').value.trim();
   const doSync=document.getElementById('evSync').value==='yes';
   if(!title)return;
+
   if(editingEvent){
+    // Editing existing event
     const ev=(events[editingEvent.dateKey]||[]).find(x=>x.id===editingEvent.evId);
-    if(ev){ev.person=person;ev.title=title;ev.time=time;}
+    if(ev){
+      ev.person=person;ev.title=title;ev.time=time;
+      // Update in Google Calendar if it came from there or was synced
+      if(isGcalConnected()&&(ev.fromGcal||ev.synced)){
+        await updateGcalEvent(ev,editingEvent.dateKey);
+        toast('Bijgewerkt in Google Agenda');
+      }
+    }
   }else{
+    // New event
     const k=editingCell.dateKey;
     if(!events[k])events[k]=[];
     const newEv={id:uid(),person,title,time,synced:false};
+    if(doSync&&isGcalConnected()){
+      const gcalId=await pushToGcal(newEv,k);
+      if(gcalId){newEv.gcalId=gcalId;newEv.synced=true;newEv.fromGcal=true;}
+    }
     events[k].push(newEv);
-    if(doSync)pushToGcal(newEv,k);
   }
   closeModal('eventModal');
   await saveShared();
   toast('Afspraak opgeslagen');
 }
+
 async function deleteEvent(){
   const{evId,dateKey}=editingEvent;
+  const ev=(events[dateKey]||[]).find(x=>x.id===evId);
+  if(ev&&isGcalConnected()&&(ev.fromGcal||ev.synced)){
+    await deleteGcalEvent(ev);
+    toast('Verwijderd uit Google Agenda');
+  }
   events[dateKey]=(events[dateKey]||[]).filter(x=>x.id!==evId);
   closeModal('eventModal');
   await saveShared();
   toast('Afspraak verwijderd');
 }
+
 function openDinnerModal(key){
   editingDinnerKey=key;
   const dn=dinners[key]||{};
@@ -651,6 +690,7 @@ async function clearDinner(){
   await saveShared();
   toast('Diner verwijderd');
 }
+
 function openTaskModal(person){
   document.getElementById('taskPerson').value=person;
   document.getElementById('taskTitle').value='';
@@ -697,7 +737,7 @@ function toast(msg){
 
 requestWakeLock();
 handleOAuthCallback();
-loadShared();
+loadShared().then(()=>{if(isGcalConnected())fetchAllGcalEvents();});
 startPolling();
 </script>
 </body>
