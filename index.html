@@ -592,23 +592,65 @@ function connectCal(type){
       redirect_uri:window.location.origin+window.location.pathname,
       response_type:'token',
       scope:GC_SCOPE,
-      prompt:'consent'
+      prompt:'consent',
+      include_granted_scopes:'true'
     });
-    toast('To enable Google sync: add your OAuth Client ID in the code. Auth URL ready.');
-    // window.location.href='https://accounts.google.com/o/oauth2/auth?'+params;
-    // For demo, simulate connected:
+    window.location.href='https://accounts.google.com/o/oauth2/auth?'+params.toString();
+  } else {
+    if(outlookConnected){toast('Outlook already connected');return;}
+    toast('Outlook sync coming soon — add your Azure Client ID in the code.');
+  }
+}
+
+function handleOAuthCallback(){
+  const hash=window.location.hash;
+  if(!hash) return;
+  const params=new URLSearchParams(hash.replace('#',''));
+  const token=params.get('access_token');
+  const error=params.get('error');
+  if(error){toast('Google login failed: '+error);return;}
+  if(token){
+    googleTokens.access_token=token;
+    googleTokens.expires_at=Date.now()+(parseInt(params.get('expires_in')||3600)*1000);
     googleConnected=true;
     document.getElementById('gBtn').classList.add('connected');
     document.getElementById('gBtn').innerHTML=`<i class='ti ti-check'></i> Google ✓`;
-    saveData();toast('Google Calendar connected (demo mode)');
-  } else {
-    if(outlookConnected){toast('Outlook already connected');return;}
-    toast('To enable Outlook sync: add your Azure App Client ID in the code.');
-    outlookConnected=true;
-    document.getElementById('oBtn').classList.add('connected');
-    document.getElementById('oBtn').innerHTML=`<i class='ti ti-check'></i> Outlook ✓`;
-    saveData();toast('Outlook connected (demo mode)');
+    window.history.replaceState(null,null,window.location.pathname);
+    saveData();
+    toast('✅ Google Calendar connected!');
+    fetchGoogleEvents();
   }
+}
+
+async function fetchGoogleEvents(){
+  if(!googleConnected||!googleTokens.access_token) return;
+  const dates=getWeekDates(weekOffset);
+  const timeMin=dates[0].toISOString();
+  const timeMax=dates[6].toISOString();
+  for(const person of PERSONS){
+    const calId=getCalendarIdForPerson(person);
+    try{
+      const r=await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`,{
+        headers:{'Authorization':'Bearer '+googleTokens.access_token}
+      });
+      if(!r.ok) continue;
+      const data=await r.json();
+      (data.items||[]).forEach(item=>{
+        const dateStr=(item.start.date||item.start.dateTime||'').slice(0,10);
+        if(!dateStr) return;
+        if(!events[dateStr]) events[dateStr]=[];
+        if(!events[dateStr].find(e=>e.gcalId===item.id)){
+          events[dateStr].push({
+            id:uid(),gcalId:item.id,person,
+            title:item.summary||'(no title)',
+            time:item.start.dateTime?item.start.dateTime.slice(11,16):'',
+            synced:true
+          });
+        }
+      });
+    }catch(e){}
+  }
+  saveData();render();toast('Google Calendar events loaded!');
 }
 
 async function pushToGoogleCalendar(ev, dateKey){
@@ -644,6 +686,7 @@ function toast(msg){
 }
 
 requestWakeLock();
+handleOAuthCallback();
 loadData();
 </script>
 </body>
