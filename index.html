@@ -232,7 +232,6 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBFRYVy1FLTeh4A93hp5V9jdtsfkrXQSxs",
@@ -245,7 +244,6 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
-const auth = getAuth(fbApp);
 // Geheime map — moet overeenkomen met de Firebase regels
 const SECRET = 'luitse-rodenburg-2026';
 
@@ -343,48 +341,24 @@ function updateGcalBtn(){
   else{ btn.classList.remove('connected'); lbl.textContent='Google Agenda'; ban.style.display='none'; }
 }
 
-// Firebase Authentication met Google
-var googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
-googleProvider.addScope('https://www.googleapis.com/auth/tasks');
-googleProvider.setCustomParameters({ login_hint: LOGIN_HINT, prompt: 'consent' });
-
 window.connectGoogle = function(){
-  signInWithPopup(auth, googleProvider).then(function(result){
-    var cred = GoogleAuthProvider.credentialFromResult(result);
-    if(cred && cred.accessToken){
-      gcalToken = cred.accessToken;
-      gcalExpiry = Date.now() + 3600*1000;
-      saveToken();
-      updateGcalBtn();
-      toast('✅ Google gekoppeld!');
-      fetchAllGcalEvents();
-      fetchGoogleTasks();
-    }
-  }).catch(function(e){
-    toast('Inloggen mislukt: ' + (e.message||e.code));
-  });
+  sessionStorage.setItem('gcal_pending','1');
+  var p=new URLSearchParams({client_id:GC_CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'token',scope:GC_SCOPE,prompt:'consent',login_hint:LOGIN_HINT});
+  window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
 };
 
-// Firebase houdt de sessie automatisch in stand; ververs token bij terugkeer
-function refreshTokenSilently(){
-  var user = auth.currentUser;
-  if(!user) return Promise.resolve(false);
-  // Firebase ID token verversen (houdt sessie levend)
-  return user.getIdToken(true).then(function(){
-    return true;
-  }).catch(function(){ return false; });
+function handleOAuthCallback(){
+  var hash=window.location.hash;
+  if(!hash||!sessionStorage.getItem('gcal_pending'))return;
+  var p=new URLSearchParams(hash.replace('#',''));
+  var token=p.get('access_token');if(!token)return;
+  sessionStorage.removeItem('gcal_pending');
+  gcalToken=token;gcalExpiry=Date.now()+(parseInt(p.get('expires_in')||3600)*1000);
+  window.history.replaceState(null,null,window.location.pathname);
+  saveToken();updateGcalBtn();toast('✅ Google gekoppeld!');
+  fetchAllGcalEvents();
+  fetchGoogleTasks();
 }
-
-onAuthStateChanged(auth, function(user){
-  if(user){
-    // Sessie actief — als gcalToken verlopen is, vraag om herkoppeling
-    if(!isGcalConnected()){
-      // Token kan verlopen zijn; toon herkoppel-optie maar data blijft bewaard
-      updateGcalBtn();
-    }
-  }
-});
 
 async function fetchAllGcalEvents(){
   if(!isGcalConnected())return;
@@ -737,6 +711,7 @@ setInterval(function(){if(isGcalConnected())fetchAllGcalEvents();},600000);
 requestWakeLock();
 loadToken();
 updateGcalBtn();
+handleOAuthCallback();
 initFirebase();
 render();
 if(isGcalConnected()){fetchAllGcalEvents();fetchGoogleTasks();}
