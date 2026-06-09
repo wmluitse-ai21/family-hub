@@ -254,13 +254,14 @@ var editingEvent = null, editingDinnerKey = null, editingCell = null;
 var fbReady = false;
 
 // Combineer afspraken (local + gcal, geen duplicaten)
+// Dedup op gcalId + persoon, zodat een gedeelde afspraak (zelfde id, meerdere personen) bij iedereen getoond wordt
 function getEventsForDate(k) {
   var local = localEvents[k] || [];
   var gcal = gcalEvents[k] || [];
   var ids = {};
-  for (var i=0;i<local.length;i++){ if(local[i].gcalId) ids[local[i].gcalId]=true; }
+  for (var i=0;i<local.length;i++){ if(local[i].gcalId) ids[local[i].gcalId+'|'+local[i].person]=true; }
   var res = local.slice();
-  for (var j=0;j<gcal.length;j++){ if(!ids[gcal[j].gcalId]) res.push(gcal[j]); }
+  for (var j=0;j<gcal.length;j++){ if(!ids[gcal[j].gcalId+'|'+gcal[j].person]) res.push(gcal[j]); }
   return res;
 }
 
@@ -362,7 +363,7 @@ async function fetchAllGcalEvents(){
             if(!dateStr)continue;
             if(!newGcal[dateStr])newGcal[dateStr]=[];
             var exists=false;
-            for(var ei=0;ei<newGcal[dateStr].length;ei++){if(newGcal[dateStr][ei].gcalId===item.id){exists=true;break;}}
+            for(var ei=0;ei<newGcal[dateStr].length;ei++){if(newGcal[dateStr][ei].gcalId===item.id&&newGcal[dateStr][ei].person===thisPerson){exists=true;break;}}
             if(!exists){
               var ts='',te='';
               if(item.start.dateTime){var m=item.start.dateTime.match(/T(\d{2}:\d{2})/);if(m)ts=m[1];}
