@@ -8,13 +8,8 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#fdf8f3;color:#3a2e24;min-height:100vh;overflow:hidden}
-:root{
-  --mom:#d4537e;--mom-light:#fbeaf0;--mom-dark:#72243e;
-  --dad:#378add;--dad-light:#e6f1fb;--dad-dark:#0c447c;
-  --pepijn:#1d9e75;--pepijn-light:#e1f5ee;--pepijn-dark:#085041;
-  --abel:#ba7517;--abel-light:#faeeda;--abel-dark:#633806;
-  --bg:#fdf8f3;--card:#fffcf8;--border:#ede5d8;--text:#3a2e24;--muted:#8a7a6a
-}
+:root{--mom:#d4537e;--mom-light:#fbeaf0;--mom-dark:#72243e;--dad:#378add;--dad-light:#e6f1fb;--dad-dark:#0c447c;--pepijn:#1d9e75;--pepijn-light:#e1f5ee;--pepijn-dark:#085041;--abel:#ba7517;--abel-light:#faeeda;--abel-dark:#633806;--bg:#fdf8f3;--card:#fffcf8;--border:#ede5d8;--text:#3a2e24;--muted:#8a7a6a}
+.expired-banner{background:#fef3c7;color:#92400e;padding:9px 16px;font-size:12px;text-align:center;cursor:pointer;border-bottom:1px solid #fcd34d;display:none;font-weight:500}
 .app{display:flex;flex-direction:column;height:100vh}
 header{background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
 .logo{display:flex;align-items:center;gap:8px}
@@ -29,10 +24,11 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 .hdr-btn{display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-weight:600;color:var(--text)}
 .hdr-btn.google{border-color:#ea4335;color:#ea4335}
 .hdr-btn.google.connected{border-color:#1d9e75;color:#1d9e75;background:var(--pepijn-light)}
-.hdr-btn.refresh{border-color:var(--dad);color:var(--dad)}
 .wake-dot{width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block;margin-right:3px}
 .wake-dot.active{background:#1d9e75}
 .sync-status{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:3px}
+.fb-dot{width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block}
+.fb-dot.connected{background:#1d9e75}
 .main{flex:1;display:flex;overflow:hidden}
 .calendar-area{flex:1;overflow:auto;padding:12px}
 .sidebar{width:215px;border-left:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
@@ -120,6 +116,11 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 </style>
 </head>
 <body>
+
+<div class="expired-banner" id="expiredBanner" onclick="connectGoogle()">
+  ⚠️ Google Agenda sessie verlopen — klik hier om opnieuw in te loggen. Uw gegevens zijn veilig bewaard in de database.
+</div>
+
 <div class="app">
   <header>
     <div class="logo"><i class="ti ti-home-heart"></i><h1>Familie Hub</h1></div>
@@ -137,8 +138,8 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
     <button class="hdr-btn google" id="gcalBtn" onclick="connectGoogle()">
       <i class="ti ti-calendar"></i><span id="gcalLbl">Google Agenda</span>
     </button>
-    <button class="hdr-btn refresh" onclick="manualRefresh()"><i class="ti ti-refresh"></i> Vernieuwen</button>
-    <div class="sync-status"><div class="wake-dot" id="wakeDot"></div><span id="syncLbl">Laden…</span></div>
+    <div class="sync-status"><span class="fb-dot" id="fbDot"></span><span id="syncLbl">Verbinden…</span></div>
+    <div class="sync-status"><div class="wake-dot" id="wakeDot"></div></div>
   </header>
   <div class="main">
     <div class="calendar-area">
@@ -156,27 +157,23 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
         <div id="taskList"></div>
       </div>
       <div style="padding:10px 12px;border-top:1px solid var(--border)">
-        <p style="font-size:10px;color:var(--muted);line-height:1.6">Klik op een cel voor een afspraak. Klik op een afspraak om te bewerken. Klik op het diner om de maaltijd in te stellen.</p>
+        <p style="font-size:10px;color:var(--muted);line-height:1.6">Alles wordt automatisch opgeslagen en gesynchroniseerd tussen al je apparaten.</p>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Afspraak modal -->
 <div class="modal-overlay" id="eventModal">
   <div class="modal">
     <h2 id="evTitle_hdr"><i class="ti ti-calendar-plus"></i> Afspraak toevoegen <span class="gcal-badge" id="gcalBadge" style="display:none">Google Agenda</span></h2>
     <label>Persoon</label>
-    <select id="evPerson">
-      <option value="mom">Mama</option><option value="dad">Papa</option>
-      <option value="pepijn">Pepijn</option><option value="abel">Abel</option>
-    </select>
+    <select id="evPerson"><option value="mom">Mama</option><option value="dad">Papa</option><option value="pepijn">Pepijn</option><option value="abel">Abel</option></select>
     <label>Titel</label>
     <input type="text" id="evTitle" placeholder="bijv. Voetbaltraining"/>
     <label>Tijd (optioneel)</label>
     <input type="text" id="evTime" placeholder="bijv. 15:00 – 16:30"/>
     <label id="evSyncLabel">Synchroniseren met Google Agenda?</label>
-    <select id="evSync"><option value="yes">Ja – naar Google Agenda sturen</option><option value="no">Nee – alleen lokaal</option></select>
+    <select id="evSync"><option value="yes">Ja – naar Google Agenda sturen</option><option value="no">Nee – alleen in app</option></select>
     <div class="modal-btns">
       <button class="btn-delete" id="evDeleteBtn" onclick="deleteEvent()" style="display:none"><i class="ti ti-trash"></i> Verwijderen</button>
       <button class="btn-cancel" onclick="closeModal('eventModal')">Annuleren</button>
@@ -185,18 +182,13 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
   </div>
 </div>
 
-<!-- Diner modal -->
 <div class="modal-overlay" id="dinnerModal">
   <div class="modal">
     <h2><i class="ti ti-soup"></i> Diner bewerken</h2>
     <label>Maaltijd</label>
     <input type="text" id="dinnerTitle" placeholder="bijv. Spaghetti bolognese"/>
     <label>Wie kookt?</label>
-    <select id="dinnerCook">
-      <option value="">— niemand toegewezen —</option>
-      <option value="mom">Mama</option><option value="dad">Papa</option>
-      <option value="pepijn">Pepijn</option><option value="abel">Abel</option>
-    </select>
+    <select id="dinnerCook"><option value="">— niemand toegewezen —</option><option value="mom">Mama</option><option value="dad">Papa</option><option value="pepijn">Pepijn</option><option value="abel">Abel</option></select>
     <div class="modal-btns">
       <button class="btn-delete" onclick="clearDinner()"><i class="ti ti-trash"></i></button>
       <button class="btn-cancel" onclick="closeModal('dinnerModal')">Annuleren</button>
@@ -205,15 +197,11 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
   </div>
 </div>
 
-<!-- Taak modal -->
 <div class="modal-overlay" id="taskModal">
   <div class="modal">
     <h2><i class="ti ti-circle-plus"></i> Taak toevoegen</h2>
     <label>Persoon</label>
-    <select id="taskPerson">
-      <option value="mom">Mama</option><option value="dad">Papa</option>
-      <option value="pepijn">Pepijn</option><option value="abel">Abel</option>
-    </select>
+    <select id="taskPerson"><option value="mom">Mama</option><option value="dad">Papa</option><option value="pepijn">Pepijn</option><option value="abel">Abel</option></select>
     <label>Taak</label>
     <input type="text" id="taskTitle" placeholder="bijv. Boodschappen doen"/>
     <div class="modal-btns">
@@ -225,74 +213,112 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 
 <div class="toast" id="toast"></div>
 
-<script>
-var PERSONS=['mom','dad','pepijn','abel'];
-var NAMES={mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
-var CALIDS={mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
-var LOGIN_HINT='w.m.luitse@gmail.com';
-var DAYS=['Ma','Di','Wo','Do','Vr','Za','Zo'];
-var GC_CLIENT_ID='627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
-var GC_SCOPE='https://www.googleapis.com/auth/calendar.events';
-var REDIRECT_URI='https://wmluitse-ai21.github.io/family-hub/';
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-var view='week',weekOffset=0,dayOffset=0,monthOffset=0;
-var events={},dinners={},tasks={mom:[],dad:[],pepijn:[],abel:[]};
-var editingEvent=null,editingDinnerKey=null,editingCell=null;
-var gcalToken=null,gcalExpiry=0;
-var pollTimer=null;
+const firebaseConfig = {
+  apiKey: "AIzaSyBFRYVy1FLTeh4A93hp5V9jdtsfkrXQSxs",
+  authDomain: "family-hub-7f768.firebaseapp.com",
+  databaseURL: "https://family-hub-7f768-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "family-hub-7f768",
+  storageBucket: "family-hub-7f768.firebasestorage.app",
+  messagingSenderId: "623723970377",
+  appId: "1:623723970377:web:44417550188171c93d6498"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
 
-// Wake Lock
+var PERSONS = ['mom','dad','pepijn','abel'];
+var NAMES = {mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
+var CALIDS = {mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
+var LOGIN_HINT = 'w.m.luitse@gmail.com';
+var DAYS = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+var GC_CLIENT_ID = '627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
+var GC_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+var REDIRECT_URI = 'https://wmluitse-ai21.github.io/family-hub/';
+
+// Data — localEvents/dinners/tasks in Firebase; gcalEvents from Google
+var localEvents = {}, gcalEvents = {}, dinners = {}, tasks = {mom:[],dad:[],pepijn:[],abel:[]};
+var gcalToken = null, gcalExpiry = 0;
+var view = 'week', weekOffset = 0, dayOffset = 0, monthOffset = 0;
+var editingEvent = null, editingDinnerKey = null, editingCell = null;
+var fbReady = false;
+
+// Combineer afspraken (local + gcal, geen duplicaten)
+function getEventsForDate(k) {
+  var local = localEvents[k] || [];
+  var gcal = gcalEvents[k] || [];
+  var ids = {};
+  for (var i=0;i<local.length;i++){ if(local[i].gcalId) ids[local[i].gcalId]=true; }
+  var res = local.slice();
+  for (var j=0;j<gcal.length;j++){ if(!ids[gcal[j].gcalId]) res.push(gcal[j]); }
+  return res;
+}
+
+// ── Wake Lock ──
 async function requestWakeLock(){
-  try{if('wakeLock' in navigator){var wl=await navigator.wakeLock.request('screen');document.getElementById('wakeDot').classList.add('active');wl.addEventListener('release',function(){document.getElementById('wakeDot').classList.remove('active');});}}catch(e){}
+  try{ if('wakeLock' in navigator){ var wl=await navigator.wakeLock.request('screen'); document.getElementById('wakeDot').classList.add('active'); wl.addEventListener('release',function(){document.getElementById('wakeDot').classList.remove('active');}); } }catch(e){}
 }
-document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){requestWakeLock();loadShared();}});
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') requestWakeLock(); });
 
-// Shared storage
-async function loadShared(){
-  setSyncLbl('Laden…');
-  try{
-    var re=await window.storage.get('fh-events',true);
-    var rd=await window.storage.get('fh-dinners',true);
-    var rt=await window.storage.get('fh-tasks',true);
-    var rg=await window.storage.get('fh-gcal',false);
-    if(re)events=JSON.parse(re.value);
-    if(rd)dinners=JSON.parse(rd.value);
-    if(rt){var t=JSON.parse(rt.value);tasks={mom:t.mom||[],dad:t.dad||[],pepijn:t.pepijn||[],abel:t.abel||[]};}
-    if(rg){var g=JSON.parse(rg.value);gcalToken=g.token||null;gcalExpiry=g.expiry||0;}
-  }catch(e){}
-  updateGcalBtn();
-  setSyncLbl('Gesynchroniseerd');
-  render();
-}
-
-async function saveShared(){
-  setSyncLbl('Opslaan…');
-  try{
-    await window.storage.set('fh-events',JSON.stringify(events),true);
-    await window.storage.set('fh-dinners',JSON.stringify(dinners),true);
-    await window.storage.set('fh-tasks',JSON.stringify(tasks),true);
-  }catch(e){}
-  setSyncLbl('Gesynchroniseerd');
-  render();
+// ── Firebase realtime listeners ──
+function initFirebase(){
+  // localEvents
+  onValue(ref(db,'localEvents'), function(snap){
+    localEvents = snap.val() || {};
+    render();
+  });
+  // dinners
+  onValue(ref(db,'dinners'), function(snap){
+    dinners = snap.val() || {};
+    render();
+  });
+  // tasks
+  onValue(ref(db,'tasks'), function(snap){
+    var t = snap.val() || {};
+    tasks = {mom:t.mom||[],dad:t.dad||[],pepijn:t.pepijn||[],abel:t.abel||[]};
+    renderTasks();
+  });
+  // connection status
+  onValue(ref(db,'.info/connected'), function(snap){
+    fbReady = snap.val()===true;
+    document.getElementById('fbDot').classList.toggle('connected',fbReady);
+    setSyncLbl(fbReady?('Opgeslagen '+now()):'Verbinden…');
+  });
 }
 
-function setSyncLbl(t){document.getElementById('syncLbl').textContent=t;}
-function startPolling(){if(pollTimer)clearInterval(pollTimer);pollTimer=setInterval(function(){loadShared();},20000);}
-async function manualRefresh(){setSyncLbl('Vernieuwen…');await loadShared();if(isGcalConnected())await fetchAllGcalEvents();toast('Vernieuwd ✓');}
+// Schrijf naar Firebase
+function fbSet(path, value){
+  return set(ref(db,path), value).catch(function(e){ toast('Opslagfout: '+e.message); });
+}
+async function saveLocalEvents(){ await fbSet('localEvents', localEvents); setSyncLbl('Opgeslagen '+now()); }
+async function saveDinners(){ await fbSet('dinners', dinners); setSyncLbl('Opgeslagen '+now()); }
+async function saveTasks(){ await fbSet('tasks', tasks); setSyncLbl('Opgeslagen '+now()); }
 
-// Google Calendar
-function isGcalConnected(){return !!(gcalToken&&gcalExpiry>Date.now());}
+function setSyncLbl(t){ document.getElementById('syncLbl').textContent=t; }
+function now(){ return new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
+
+// ── Google token (per apparaat, in localStorage) ──
+function loadToken(){
+  try{ var s=localStorage.getItem('fh-token'); if(s){ var g=JSON.parse(s); gcalToken=g.token||null; gcalExpiry=g.expiry||0; } }catch(e){}
+}
+function saveToken(){
+  try{ localStorage.setItem('fh-token', JSON.stringify({token:gcalToken,expiry:gcalExpiry})); }catch(e){}
+}
+
+function isGcalConnected(){ return !!(gcalToken && gcalExpiry > Date.now()); }
 function updateGcalBtn(){
-  var btn=document.getElementById('gcalBtn'),lbl=document.getElementById('gcalLbl');
-  if(isGcalConnected()){btn.classList.add('connected');lbl.textContent='Agenda ✓';}
-  else{btn.classList.remove('connected');lbl.textContent='Google Agenda';}
+  var btn=document.getElementById('gcalBtn'),lbl=document.getElementById('gcalLbl'),ban=document.getElementById('expiredBanner');
+  if(isGcalConnected()){ btn.classList.add('connected'); lbl.textContent='Agenda ✓'; ban.style.display='none'; }
+  else if(gcalToken){ btn.classList.remove('connected'); lbl.textContent='Opnieuw inloggen'; ban.style.display='block'; }
+  else{ btn.classList.remove('connected'); lbl.textContent='Google Agenda'; ban.style.display='none'; }
 }
-function connectGoogle(){
-  if(isGcalConnected()){toast('Google Agenda is al gekoppeld');return;}
+window.connectGoogle = function(){
   sessionStorage.setItem('gcal_pending','1');
   var p=new URLSearchParams({client_id:GC_CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'token',scope:GC_SCOPE,prompt:'consent',login_hint:LOGIN_HINT});
   window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
-}
+};
 function handleOAuthCallback(){
   var hash=window.location.hash;
   if(!hash||!sessionStorage.getItem('gcal_pending'))return;
@@ -301,302 +327,158 @@ function handleOAuthCallback(){
   sessionStorage.removeItem('gcal_pending');
   gcalToken=token;gcalExpiry=Date.now()+(parseInt(p.get('expires_in')||3600)*1000);
   window.history.replaceState(null,null,window.location.pathname);
-  try{window.storage.set('fh-gcal',JSON.stringify({token:gcalToken,expiry:gcalExpiry}),false);}catch(e){}
-  updateGcalBtn();toast('✅ Google Agenda gekoppeld!');
+  saveToken();updateGcalBtn();toast('✅ Google Agenda gekoppeld!');
   fetchAllGcalEvents();
 }
 
-// Fetch ALL Google Calendar events
 async function fetchAllGcalEvents(){
   if(!isGcalConnected())return;
   setSyncLbl('Agenda ophalen…');
-  var timeMin=new Date();timeMin.setMonth(timeMin.getMonth()-3);timeMin.setHours(0,0,0,0);
-  var timeMax=new Date();timeMax.setMonth(timeMax.getMonth()+9);timeMax.setHours(23,59,59,999);
-
-  // Clear old gcal events
-  var cur=new Date(timeMin);
-  while(cur<=timeMax){
-    var k=iso(cur);
-    if(events[k])events[k]=events[k].filter(function(e){return !e.fromGcal;});
-    cur.setDate(cur.getDate()+1);
-  }
-
-  // Loop over each person using index to avoid closure issues
+  var tMin=new Date();tMin.setMonth(tMin.getMonth()-3);tMin.setHours(0,0,0,0);
+  var tMax=new Date();tMax.setMonth(tMax.getMonth()+9);tMax.setHours(23,59,59,999);
+  var newGcal={};
   for(var pi=0;pi<PERSONS.length;pi++){
-    var person=PERSONS[pi];
-    var calId=CALIDS[person];
-    var pageToken=null;
+    var person=PERSONS[pi],calId=CALIDS[person],pageToken=null;
     do{
       try{
-        var params=new URLSearchParams({
-          timeMin:timeMin.toISOString(),
-          timeMax:timeMax.toISOString(),
-          singleEvents:'true',
-          orderBy:'startTime',
-          maxResults:'2500'
-        });
+        var params=new URLSearchParams({timeMin:tMin.toISOString(),timeMax:tMax.toISOString(),singleEvents:'true',orderBy:'startTime',maxResults:'2500'});
         if(pageToken)params.set('pageToken',pageToken);
-        var url='https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events?'+params.toString();
-        var r=await fetch(url,{headers:{'Authorization':'Bearer '+gcalToken}});
-        if(r.status===401){
-          gcalToken=null;gcalExpiry=0;
-          try{window.storage.set('fh-gcal',JSON.stringify({token:null,expiry:0}),false);}catch(ex){}
-          updateGcalBtn();toast('Google sessie verlopen — opnieuw inloggen');return;
-        }
+        var r=await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events?'+params,{headers:{'Authorization':'Bearer '+gcalToken}});
+        if(r.status===401){gcalToken=null;gcalExpiry=0;saveToken();updateGcalBtn();toast('Sessie verlopen — klik op de gele balk');return;}
         if(!r.ok){pageToken=null;break;}
         var data=await r.json();
-        var thisPerson=person;
-        var thisCalId=calId;
-        var items=data.items||[];
-        for(var ii=0;ii<items.length;ii++){
-          var item=items[ii];
-          var dateStr='';
-          if(item.start.date){
-            dateStr=item.start.date;
-          }else if(item.start.dateTime){
-            var dt=item.start.dateTime;
-            dateStr=dt.slice(0,10);
+        (function(thisPerson,thisCalId,items){
+          for(var ii=0;ii<items.length;ii++){
+            var item=items[ii];
+            var dateStr=item.start.date||(item.start.dateTime?item.start.dateTime.slice(0,10):'');
+            if(!dateStr)continue;
+            if(!newGcal[dateStr])newGcal[dateStr]=[];
+            var exists=false;
+            for(var ei=0;ei<newGcal[dateStr].length;ei++){if(newGcal[dateStr][ei].gcalId===item.id){exists=true;break;}}
+            if(!exists){
+              var ts='',te='';
+              if(item.start.dateTime){var m=item.start.dateTime.match(/T(\d{2}:\d{2})/);if(m)ts=m[1];}
+              if(item.end&&item.end.dateTime){var m2=item.end.dateTime.match(/T(\d{2}:\d{2})/);if(m2)te=m2[1];}
+              newGcal[dateStr].push({id:uid(),gcalId:item.id,gcalCalId:thisCalId,person:thisPerson,fromGcal:true,title:item.summary||'(geen titel)',time:ts,endTime:te});
+            }
           }
-          if(!dateStr)continue;
-          if(!events[dateStr])events[dateStr]=[];
-          var alreadyExists=false;
-          for(var ei=0;ei<events[dateStr].length;ei++){
-            if(events[dateStr][ei].gcalId===item.id&&events[dateStr][ei].person===thisPerson){alreadyExists=true;break;}
-          }
-          if(!alreadyExists){
-            var timeStr='';
-            if(item.start.dateTime){var tm=item.start.dateTime.match(/T(\d{2}:\d{2})/);if(tm)timeStr=tm[1];}
-            var endTimeStr='';
-            if(item.end&&item.end.dateTime){var tm2=item.end.dateTime.match(/T(\d{2}:\d{2})/);if(tm2)endTimeStr=tm2[1];}
-            events[dateStr].push({
-              id:uid(),
-              gcalId:item.id,
-              gcalCalId:thisCalId,
-              person:thisPerson,
-              fromGcal:true,
-              title:item.summary||'(geen titel)',
-              time:timeStr,
-              endTime:endTimeStr,
-              synced:true
-            });
-          }
-        }
+        })(person,calId,data.items||[]);
         pageToken=data.nextPageToken||null;
       }catch(ex){pageToken=null;}
     }while(pageToken);
   }
-  await saveShared();
-  setSyncLbl('Gesynchroniseerd');
+  gcalEvents=newGcal;
+  setSyncLbl('Bijgewerkt '+now());
+  render();
 }
 
-// Push new event to Google Calendar
 async function pushToGcal(ev,dateKey){
   if(!isGcalConnected())return null;
+  var calId=CALIDS[ev.person];
   var body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
   if(ev.time){
-    var parts=(ev.time.split('–')[0]||ev.time).trim().split(':');
-    var hh=parseInt(parts[0]),mm=parseInt(parts[1])||0;
-    var pad=function(n){return String(n).padStart(2,'0');};
-    var endH=ev.endTime?parseInt(ev.endTime.split(':')[0]):hh+1;
-    var endM=ev.endTime?parseInt(ev.endTime.split(':')[1]):mm;
+    var pts=(ev.time.split('–')[0]||ev.time).trim().split(':');
+    var hh=parseInt(pts[0]),mm=parseInt(pts[1])||0,pad=function(n){return String(n).padStart(2,'0');};
     body.start={dateTime:dateKey+'T'+pad(hh)+':'+pad(mm)+':00'};
-    body.end={dateTime:dateKey+'T'+pad(endH)+':'+pad(endM)+':00'};
+    body.end={dateTime:dateKey+'T'+pad(hh+1)+':'+pad(mm)+':00'};
   }
   try{
-    var r=await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALIDS[ev.person])+'/events',{
-      method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
-      body:JSON.stringify(body)
-    });
+    var r=await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events',{method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},body:JSON.stringify(body)});
     if(r.ok){var d=await r.json();return d.id;}
   }catch(e){}
   return null;
 }
-
-// Update existing Google Calendar event
 async function updateGcalEvent(ev,dateKey){
   if(!isGcalConnected()||!ev.gcalId)return;
+  var calId=CALIDS[ev.person];
   var body={summary:ev.title,start:{date:dateKey},end:{date:dateKey}};
-  if(ev.time){
-    var parts=(ev.time.split('–')[0]||ev.time).trim().split(':');
-    var hh=parseInt(parts[0]),mm=parseInt(parts[1])||0;
-    var pad=function(n){return String(n).padStart(2,'0');};
-    var endH=ev.endTime?parseInt(ev.endTime.split(':')[0]):hh+1;
-    var endM=ev.endTime?parseInt(ev.endTime.split(':')[1]):mm;
-    body.start={dateTime:dateKey+'T'+pad(hh)+':'+pad(mm)+':00'};
-    body.end={dateTime:dateKey+'T'+pad(endH)+':'+pad(endM)+':00'};
-  }
-  try{
-    await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALIDS[ev.person])+'/events/'+ev.gcalId,{
-      method:'PATCH',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
-      body:JSON.stringify(body)
-    });
-  }catch(e){}
+  if(ev.time){var pts=(ev.time.split('–')[0]||ev.time).trim().split(':');var hh=parseInt(pts[0]),mm=parseInt(pts[1])||0,pad=function(n){return String(n).padStart(2,'0');};body.start={dateTime:dateKey+'T'+pad(hh)+':'+pad(mm)+':00'};body.end={dateTime:dateKey+'T'+pad(hh+1)+':'+pad(mm)+':00'};}
+  try{await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events/'+ev.gcalId,{method:'PATCH',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},body:JSON.stringify(body)});}catch(e){}
 }
-
-// Delete Google Calendar event
 async function deleteGcalEvent(ev){
   if(!isGcalConnected()||!ev.gcalId)return;
-  try{
-    await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(CALIDS[ev.person])+'/events/'+ev.gcalId,{
-      method:'DELETE',headers:{'Authorization':'Bearer '+gcalToken}
-    });
-  }catch(e){}
+  var calId=CALIDS[ev.person];
+  try{await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events/'+ev.gcalId,{method:'DELETE',headers:{'Authorization':'Bearer '+gcalToken}});}catch(e){}
 }
 
-// Date helpers
-function getWeekDates(off){
-  var now=new Date(),day=now.getDay(),mon=new Date(now);
-  mon.setDate(now.getDate()-(day===0?6:day-1)+off*7);
-  return Array.from({length:7},function(_,i){var d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
-}
+// ── Datum helpers ──
+function getWeekDates(off){var now=new Date(),day=now.getDay(),mon=new Date(now);mon.setDate(now.getDate()-(day===0?6:day-1)+off*7);return Array.from({length:7},function(_,i){var d=new Date(mon);d.setDate(mon.getDate()+i);return d;});}
 function getDayDate(off){var d=new Date();d.setDate(d.getDate()+off);return d;}
-function getMonthDates(off){
-  var now=new Date(),y=now.getFullYear(),m=now.getMonth()+off;
-  var first=new Date(y,m,1),last=new Date(y,m+1,0);
-  var start=new Date(first);start.setDate(first.getDate()-(first.getDay()===0?6:first.getDay()-1));
-  var end=new Date(last);var ld=last.getDay();end.setDate(last.getDate()+(ld===0?0:7-ld));
-  var dates=[],cur=new Date(start);
-  while(cur<=end){dates.push(new Date(cur));cur.setDate(cur.getDate()+1);}
-  return{dates:dates,month:new Date(y,m,1)};
-}
+function getMonthDates(off){var now=new Date(),y=now.getFullYear(),m=now.getMonth()+off;var first=new Date(y,m,1),last=new Date(y,m+1,0);var start=new Date(first);start.setDate(first.getDate()-(first.getDay()===0?6:first.getDay()-1));var end=new Date(last);var ld=last.getDay();end.setDate(last.getDate()+(ld===0?0:7-ld));var dates=[],cur=new Date(start);while(cur<=end){dates.push(new Date(cur));cur.setDate(cur.getDate()+1);}return{dates:dates,month:new Date(y,m,1)};}
 function iso(d){return d.toISOString().slice(0,10);}
 function isToday(d){var t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
-// View management
-function setView(v){
-  view=v;
-  document.querySelectorAll('.view-tab').forEach(function(t,i){t.classList.toggle('active',['week','day','month'][i]===v);});
-  render();
-}
-function changePeriod(d){
-  if(view==='week')weekOffset+=d;
-  else if(view==='day')dayOffset+=d;
-  else monthOffset+=d;
-  render();
-}
-function goToday(){weekOffset=0;dayOffset=0;monthOffset=0;render();}
-function goToDay(isoStr){
-  var target=new Date(isoStr),today=new Date();
-  dayOffset=Math.round((target-today)/(1000*60*60*24));
-  setView('day');
-}
-function render(){
-  if(view==='week')renderWeek();
-  else if(view==='day')renderDay();
-  else renderMonth();
-  renderTasks();
-}
+// ── Weergave ──
+window.setView=function(v){view=v;document.querySelectorAll('.view-tab').forEach(function(t,i){t.classList.toggle('active',['week','day','month'][i]===v);});render();};
+window.changePeriod=function(d){if(view==='week')weekOffset+=d;else if(view==='day')dayOffset+=d;else monthOffset+=d;render();};
+window.goToday=function(){weekOffset=0;dayOffset=0;monthOffset=0;render();};
+window.goToDay=function(isoStr){var target=new Date(isoStr),today=new Date();dayOffset=Math.round((target-today)/(1000*60*60*24));setView('day');};
+function render(){if(view==='week')renderWeek();else if(view==='day')renderDay();else renderMonth();renderTasks();}
 
 function renderWeek(){
   var dates=getWeekDates(weekOffset);
-  document.getElementById('periodLabel').textContent=
-    dates[0].toLocaleDateString('nl-NL',{month:'short',day:'numeric'})+' – '+
-    dates[6].toLocaleDateString('nl-NL',{month:'short',day:'numeric'});
-  var html='<div class="grid-wrapper"><div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)"><div class="day-header"></div>';
-  for(var i=0;i<dates.length;i++){
-    html+='<div class="day-header'+(isToday(dates[i])?' today':'')+'">'+DAYS[i]+'<span>'+dates[i].getDate()+'</span></div>';
-  }
-  html+='</div>';
+  document.getElementById('periodLabel').textContent=dates[0].toLocaleDateString('nl-NL',{month:'short',day:'numeric'})+' – '+dates[6].toLocaleDateString('nl-NL',{month:'short',day:'numeric'});
+  var h='<div class="grid-wrapper"><div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)"><div class="day-header"></div>';
+  for(var i=0;i<dates.length;i++)h+='<div class="day-header'+(isToday(dates[i])?' today':'')+'">'+DAYS[i]+'<span>'+dates[i].getDate()+'</span></div>';
+  h+='</div>';
   for(var pi=0;pi<PERSONS.length;pi++){
     var p=PERSONS[pi];
-    html+='<div class="person-row" style="grid-template-columns:72px repeat(7,1fr)"><div class="row-label"><div class="dot" style="background:var(--'+p+')"></div><span class="name person-color-'+p+'">'+NAMES[p]+'</span></div>';
+    h+='<div class="person-row" style="grid-template-columns:72px repeat(7,1fr)"><div class="row-label"><div class="dot" style="background:var(--'+p+')"></div><span class="name person-color-'+p+'">'+NAMES[p]+'</span></div>';
     for(var di=0;di<dates.length;di++){
-      var k=iso(dates[di]);
-      var evs=(events[k]||[]).filter(function(e){return e.person===p;});
-      html+='<div class="day-cell'+(isToday(dates[di])?' today-col':'')+'" onclick="openEventModal(\''+p+'\',\''+k+'\',event)">';
-      for(var ei=0;ei<evs.length;ei++){
-        var ev=evs[ei];
-        html+='<div class="event-chip bg-'+p+(ev.fromGcal?' gcal':'')+'" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')" title="'+ev.title+'">'+(ev.fromGcal?'<i class="ti ti-calendar" style="font-size:8px"></i>':'')+(ev.time?'<i class="ti ti-clock"></i>':'')+trunc(ev.title,14)+'</div>';
-      }
-      html+='<button class="add-btn"><i class="ti ti-plus"></i></button></div>';
+      var k=iso(dates[di]),evs=getEventsForDate(k).filter(function(e){return e.person===p;});
+      h+='<div class="day-cell'+(isToday(dates[di])?' today-col':'')+'" onclick="openEventModal(\''+p+'\',\''+k+'\',event)">';
+      for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];h+='<div class="event-chip bg-'+p+(ev.fromGcal?' gcal':'')+'" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')" title="'+ev.title+'">'+(ev.fromGcal?'<i class="ti ti-calendar" style="font-size:8px"></i>':'')+(ev.time?'<i class="ti ti-clock"></i>':'')+trunc(ev.title,14)+'</div>';}
+      h+='<button class="add-btn"><i class="ti ti-plus"></i></button></div>';
     }
-    html+='</div>';
+    h+='</div>';
   }
-  html+='<div class="dinner-row"><div class="dinner-label"><i class="ti ti-soup"></i> Diner</div>';
-  for(var di2=0;di2<dates.length;di2++){
-    var dk=iso(dates[di2]);var dn=dinners[dk]||{};
-    html+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">';
-    html+=dn.meal?'<span class="meal">'+trunc(dn.meal,16)+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>';
-    if(dn.cook)html+='<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>';
-    html+='</div>';
-  }
-  html+='</div></div>';
-  document.getElementById('calBody').innerHTML=html;
+  h+='<div class="dinner-row"><div class="dinner-label"><i class="ti ti-soup"></i> Diner</div>';
+  for(var di2=0;di2<dates.length;di2++){var dk=iso(dates[di2]),dn=dinners[dk]||{};h+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">'+(dn.meal?'<span class="meal">'+trunc(dn.meal,16)+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>':'')+'</div>';}
+  h+='</div></div>';
+  document.getElementById('calBody').innerHTML=h;
 }
 
 function renderDay(){
-  var d=getDayDate(dayOffset);var k=iso(d);
+  var d=getDayDate(dayOffset),k=iso(d);
   document.getElementById('periodLabel').textContent=d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
   var dn=dinners[k]||{};
-  var html='<div class="day-view-grid"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);border-bottom:1px solid var(--border)"><div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>';
-  for(var pi=0;pi<PERSONS.length;pi++){
-    var p=PERSONS[pi];
-    html+='<div class="day-col-hdr person-color-'+p+'" style="background:var(--'+p+'-light)">'+NAMES[p]+'</div>';
-  }
-  html+='</div><div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px"><div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center"><i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i><span style="font-size:9px;color:var(--muted);margin-top:2px">Afspraken</span></div>';
-  for(var pi2=0;pi2<PERSONS.length;pi2++){
-    var p2=PERSONS[pi2];
-    var evs=(events[k]||[]).filter(function(e){return e.person===p2;});
-    html+='<div class="day-view-cell" onclick="openEventModal(\''+p2+'\',\''+k+'\',event)">';
-    for(var ei=0;ei<evs.length;ei++){
-      var ev=evs[ei];
-      html+='<div class="event-chip bg-'+p2+(ev.fromGcal?' gcal':'')+'" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')">'+(ev.fromGcal?'<i class="ti ti-calendar"></i>':'')+(ev.time?'<strong>'+ev.time+'</strong> ':'')+ev.title+'</div>';
-    }
-    html+='<button class="add-btn" style="opacity:.4"><i class="ti ti-plus"></i></button></div>';
-  }
-  html+='</div><div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none"><div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div>';
-  html+='<div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal(\''+k+'\')">';
-  html+=dn.meal?'<div style="font-size:13px;font-weight:500">'+dn.meal+'</div>':'<div style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</div>';
-  if(dn.cook)html+='<div class="cook-badge bg-'+dn.cook+'" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class="ti ti-chef-hat"></i> '+NAMES[dn.cook]+' kookt vanavond</div>';
-  html+='</div></div></div>';
-  document.getElementById('calBody').innerHTML=html;
+  var h='<div class="day-view-grid"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);border-bottom:1px solid var(--border)"><div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>';
+  for(var pi=0;pi<PERSONS.length;pi++)h+='<div class="day-col-hdr person-color-'+PERSONS[pi]+'" style="background:var(--'+PERSONS[pi]+'-light)">'+NAMES[PERSONS[pi]]+'</div>';
+  h+='</div><div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px"><div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center"><i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i><span style="font-size:9px;color:var(--muted);margin-top:2px">Afspraken</span></div>';
+  for(var pi2=0;pi2<PERSONS.length;pi2++){var p2=PERSONS[pi2],evs=getEventsForDate(k).filter(function(e){return e.person===p2;});h+='<div class="day-view-cell" onclick="openEventModal(\''+p2+'\',\''+k+'\',event)">';for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];h+='<div class="event-chip bg-'+p2+(ev.fromGcal?' gcal':'')+'" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')">'+(ev.fromGcal?'<i class="ti ti-calendar"></i>':'')+(ev.time?'<strong>'+ev.time+'</strong> ':'')+ev.title+'</div>';}h+='<button class="add-btn" style="opacity:.4"><i class="ti ti-plus"></i></button></div>';}
+  h+='</div><div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none"><div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div><div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal(\''+k+'\')">'+(dn.meal?'<div style="font-size:13px;font-weight:500">'+dn.meal+'</div>':'<div style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</div>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class="ti ti-chef-hat"></i> '+NAMES[dn.cook]+' kookt vanavond</div>':'')+'</div></div></div>';
+  document.getElementById('calBody').innerHTML=h;
 }
 
 function renderMonth(){
-  var md=getMonthDates(monthOffset);var dates=md.dates;var month=md.month;
-  document.getElementById('periodLabel').textContent=month.toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
-  var html='<div class="month-grid"><div class="month-weekdays">';
-  for(var i=0;i<DAYS.length;i++)html+='<div class="month-weekday">'+DAYS[i]+'</div>';
-  html+='</div><div class="month-cells">';
-  for(var di=0;di<dates.length;di++){
-    var d=dates[di];var k=iso(d);var inMonth=d.getMonth()===month.getMonth();
-    var dayEvs=events[k]||[];var dn=dinners[k]||{};
-    html+='<div class="month-cell'+((!inMonth)?' other-month':'')+(isToday(d)?' today-col':'')+'" onclick="goToDay(\''+k+'\')">';
-    html+='<div class="month-day-num">'+d.getDate()+'</div>';
-    for(var pi=0;pi<PERSONS.length;pi++){
-      var p=PERSONS[pi];
-      var pevs=dayEvs.filter(function(e){return e.person===p;});
-      for(var ei=0;ei<pevs.length;ei++)html+='<div class="month-ev-chip bg-'+p+'">'+trunc(pevs[ei].title,12)+'</div>';
-    }
-    if(dn.meal)html+='<div class="month-dinner"><i class="ti ti-soup" style="font-size:8px"></i>'+trunc(dn.meal,12)+'</div>';
-    html+='</div>';
-  }
-  html+='</div></div>';
-  document.getElementById('calBody').innerHTML=html;
+  var md=getMonthDates(monthOffset);
+  document.getElementById('periodLabel').textContent=md.month.toLocaleDateString('nl-NL',{month:'long',year:'numeric'});
+  var h='<div class="month-grid"><div class="month-weekdays">';
+  for(var i=0;i<DAYS.length;i++)h+='<div class="month-weekday">'+DAYS[i]+'</div>';
+  h+='</div><div class="month-cells">';
+  for(var di=0;di<md.dates.length;di++){var d=md.dates[di],k=iso(d),inM=d.getMonth()===md.month.getMonth(),dn=dinners[k]||{},dayEvs=getEventsForDate(k);h+='<div class="month-cell'+((!inM)?' other-month':'')+(isToday(d)?' today-col':'')+'" onclick="goToDay(\''+k+'\')"><div class="month-day-num">'+d.getDate()+'</div>';for(var pi=0;pi<PERSONS.length;pi++){var pevs=dayEvs.filter(function(e){return e.person===PERSONS[pi];});for(var ei=0;ei<pevs.length;ei++)h+='<div class="month-ev-chip bg-'+PERSONS[pi]+'">'+trunc(pevs[ei].title,12)+'</div>';}if(dn.meal)h+='<div class="month-dinner"><i class="ti ti-soup" style="font-size:8px"></i>'+trunc(dn.meal,12)+'</div>';h+='</div>';}
+  h+='</div></div>';
+  document.getElementById('calBody').innerHTML=h;
 }
 
 function renderTasks(){
-  var html='';
-  for(var pi=0;pi<PERSONS.length;pi++){
-    var p=PERSONS[pi];var pt=tasks[p]||[];
-    html+='<div class="task-person"><div class="task-person-hdr"><div style="width:8px;height:8px;border-radius:50%;background:var(--'+p+')"></div><span class="person-color-'+p+'">'+NAMES[p]+'</span></div>';
-    for(var ti=0;ti<pt.length;ti++){
-      var t=pt[ti];
-      html+='<div class="task-item" onclick="toggleTask(\''+p+'\',\''+t.id+'\')"><div class="task-check'+(t.done?' done':'')+'">'+( t.done?'<i class="ti ti-check"></i>':'' )+'</div><span class="task-text'+(t.done?' done':'')+'">'+t.text+'</span></div>';
-    }
-    html+='<button class="add-task-btn" onclick="openTaskModal(\''+p+'\')"><i class="ti ti-plus"></i> Toevoegen</button></div>';
-  }
-  document.getElementById('taskList').innerHTML=html;
+  var h='';
+  for(var pi=0;pi<PERSONS.length;pi++){var p=PERSONS[pi],pt=tasks[p]||[];h+='<div class="task-person"><div class="task-person-hdr"><div style="width:8px;height:8px;border-radius:50%;background:var(--'+p+')"></div><span class="person-color-'+p+'">'+NAMES[p]+'</span></div>';for(var ti=0;ti<pt.length;ti++){var t=pt[ti];h+='<div class="task-item" onclick="toggleTask(\''+p+'\',\''+t.id+'\')"><div class="task-check'+(t.done?' done':'')+'">'+( t.done?'<i class="ti ti-check"></i>':'')+'</div><span class="task-text'+(t.done?' done':'')+'">'+t.text+'</span></div>';}h+='<button class="add-task-btn" onclick="openTaskModal(\''+p+'\')"><i class="ti ti-plus"></i> Toevoegen</button></div>';}
+  document.getElementById('taskList').innerHTML=h;
 }
 
-// Modals
-function openEventModal(person,dateKey,e){
+function findEvent(evId){
+  for(var k in localEvents){for(var i=0;i<localEvents[k].length;i++){if(localEvents[k][i].id===evId)return{ev:localEvents[k][i],store:'local',dateKey:k};}}
+  for(var k2 in gcalEvents){for(var j=0;j<gcalEvents[k2].length;j++){if(gcalEvents[k2][j].id===evId)return{ev:gcalEvents[k2][j],store:'gcal',dateKey:k2};}}
+  return null;
+}
+
+window.openEventModal=function(person,dateKey,e){
   if(e)e.stopPropagation();
   editingEvent=null;editingCell={person:person,dateKey:dateKey};
   document.getElementById('evPerson').value=person;
-  document.getElementById('evTitle').value='';
-  document.getElementById('evTime').value='';
+  document.getElementById('evTitle').value='';document.getElementById('evTime').value='';
   document.getElementById('evSync').value=isGcalConnected()?'yes':'no';
   document.getElementById('evSync').parentElement.style.display='block';
   document.getElementById('evSyncLabel').style.display='block';
@@ -605,12 +487,11 @@ function openEventModal(person,dateKey,e){
   document.getElementById('evTitle_hdr').innerHTML='<i class="ti ti-calendar-plus"></i> Afspraak toevoegen';
   document.getElementById('eventModal').classList.add('open');
   setTimeout(function(){document.getElementById('evTitle').focus();},100);
-}
-
-function editEvent(e,evId,dateKey){
+};
+window.editEvent=function(e,evId,dateKey){
   e.stopPropagation();
-  var ev=(events[dateKey]||[]).find(function(x){return x.id===evId;});if(!ev)return;
-  editingEvent={evId:evId,dateKey:dateKey};editingCell=null;
+  var found=findEvent(evId);if(!found)return;var ev=found.ev;
+  editingEvent={evId:evId,dateKey:found.dateKey,store:found.store};editingCell=null;
   document.getElementById('evPerson').value=ev.person;
   document.getElementById('evTitle').value=ev.title;
   document.getElementById('evTime').value=ev.time||'';
@@ -621,101 +502,73 @@ function editEvent(e,evId,dateKey){
   document.getElementById('evTitle_hdr').innerHTML='<i class="ti ti-pencil"></i> Afspraak bewerken';
   document.getElementById('eventModal').classList.add('open');
   setTimeout(function(){document.getElementById('evTitle').focus();},100);
-}
-
-async function saveEvent(){
+};
+window.saveEvent=async function(){
   var person=document.getElementById('evPerson').value;
   var title=document.getElementById('evTitle').value.trim();
   var time=document.getElementById('evTime').value.trim();
   var doSync=document.getElementById('evSync').value==='yes';
   if(!title)return;
   if(editingEvent){
-    var ev=(events[editingEvent.dateKey]||[]).find(function(x){return x.id===editingEvent.evId;});
-    if(ev){ev.person=person;ev.title=title;ev.time=time;if(isGcalConnected()&&(ev.fromGcal||ev.synced)){await updateGcalEvent(ev,editingEvent.dateKey);toast('Bijgewerkt in Google Agenda');}}
+    var found=findEvent(editingEvent.evId);
+    if(found){
+      found.ev.person=person;found.ev.title=title;found.ev.time=time;
+      if(isGcalConnected()&&found.ev.gcalId)await updateGcalEvent(found.ev,found.dateKey);
+      if(found.store==='gcal'){
+        if(!localEvents[found.dateKey])localEvents[found.dateKey]=[];
+        localEvents[found.dateKey].push(found.ev);
+      }
+      await saveLocalEvents();
+    }
   }else{
     var k=editingCell.dateKey;
-    if(!events[k])events[k]=[];
-    var newEv={id:uid(),person:person,title:title,time:time,synced:false};
-    if(doSync&&isGcalConnected()){var gcalId=await pushToGcal(newEv,k);if(gcalId){newEv.gcalId=gcalId;newEv.synced=true;newEv.fromGcal=true;}}
-    events[k].push(newEv);
+    if(!localEvents[k])localEvents[k]=[];
+    var newEv={id:uid(),person:person,title:title,time:time};
+    if(doSync&&isGcalConnected()){var gcalId=await pushToGcal(newEv,k);if(gcalId){newEv.gcalId=gcalId;newEv.fromGcal=true;}toast('Toegevoegd aan '+NAMES[person]+'\'s agenda');}
+    localEvents[k].push(newEv);
+    await saveLocalEvents();
   }
-  closeModal('eventModal');await saveShared();toast('Afspraak opgeslagen');
-}
-
-async function deleteEvent(){
-  var evId=editingEvent.evId,dateKey=editingEvent.dateKey;
-  var ev=(events[dateKey]||[]).find(function(x){return x.id===evId;});
-  if(ev&&isGcalConnected()&&(ev.fromGcal||ev.synced)){await deleteGcalEvent(ev);}
-  events[dateKey]=(events[dateKey]||[]).filter(function(x){return x.id!==evId;});
-  closeModal('eventModal');await saveShared();toast('Afspraak verwijderd');
-}
-
-function openDinnerModal(key){
-  editingDinnerKey=key;
-  var dn=dinners[key]||{};
-  document.getElementById('dinnerTitle').value=dn.meal||'';
-  document.getElementById('dinnerCook').value=dn.cook||'';
-  document.getElementById('dinnerModal').classList.add('open');
-  setTimeout(function(){document.getElementById('dinnerTitle').focus();},100);
-}
-async function saveDinner(){
-  var meal=document.getElementById('dinnerTitle').value.trim();
-  var cook=document.getElementById('dinnerCook').value;
-  if(meal)dinners[editingDinnerKey]={meal:meal,cook:cook};
-  else delete dinners[editingDinnerKey];
-  closeModal('dinnerModal');await saveShared();toast('Diner bijgewerkt');
-}
-async function clearDinner(){
-  delete dinners[editingDinnerKey];
-  closeModal('dinnerModal');await saveShared();toast('Diner verwijderd');
-}
-
-function openTaskModal(person){
-  document.getElementById('taskPerson').value=person;
-  document.getElementById('taskTitle').value='';
-  document.getElementById('taskModal').classList.add('open');
-  setTimeout(function(){document.getElementById('taskTitle').focus();},100);
-}
-async function saveTask(){
-  var person=document.getElementById('taskPerson').value;
-  var text=document.getElementById('taskTitle').value.trim();
-  if(!text)return;
-  if(!tasks[person])tasks[person]=[];
-  tasks[person].push({id:uid(),text:text,done:false});
-  closeModal('taskModal');await saveShared();toast('Taak toegevoegd');
-}
-async function toggleTask(person,id){
-  var t=(tasks[person]||[]).find(function(x){return x.id===id;});
-  if(t){t.done=!t.done;await saveShared();}
-}
-
-function closeModal(id){
-  document.getElementById(id).classList.remove('open');
-  editingEvent=null;editingCell=null;editingDinnerKey=null;
-}
-document.querySelectorAll('.modal-overlay').forEach(function(m){
-  m.addEventListener('click',function(e){if(e.target===m)closeModal(m.id);});
-});
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(function(m){closeModal(m.id);});
-  if(e.key==='Enter'){
-    if(document.getElementById('eventModal').classList.contains('open'))saveEvent();
-    else if(document.getElementById('dinnerModal').classList.contains('open'))saveDinner();
-    else if(document.getElementById('taskModal').classList.contains('open'))saveTask();
+  closeModal('eventModal');
+  toast('Afspraak opgeslagen');
+};
+window.deleteEvent=async function(){
+  var found=findEvent(editingEvent.evId);
+  if(found){
+    if(isGcalConnected()&&found.ev.gcalId)await deleteGcalEvent(found.ev);
+    if(found.store==='local'){localEvents[found.dateKey]=localEvents[found.dateKey].filter(function(x){return x.id!==found.ev.id;});await saveLocalEvents();}
+    else{gcalEvents[found.dateKey]=gcalEvents[found.dateKey].filter(function(x){return x.id!==found.ev.id;});render();}
   }
-});
+  closeModal('eventModal');toast('Afspraak verwijderd');
+};
+
+window.openDinnerModal=function(key){editingDinnerKey=key;var dn=dinners[key]||{};document.getElementById('dinnerTitle').value=dn.meal||'';document.getElementById('dinnerCook').value=dn.cook||'';document.getElementById('dinnerModal').classList.add('open');setTimeout(function(){document.getElementById('dinnerTitle').focus();},100);};
+window.saveDinner=async function(){var meal=document.getElementById('dinnerTitle').value.trim();var cook=document.getElementById('dinnerCook').value;if(meal)dinners[editingDinnerKey]={meal:meal,cook:cook};else delete dinners[editingDinnerKey];closeModal('dinnerModal');await saveDinners();toast('Diner bijgewerkt');};
+window.clearDinner=async function(){delete dinners[editingDinnerKey];closeModal('dinnerModal');await saveDinners();toast('Diner verwijderd');};
+
+window.openTaskModal=function(person){document.getElementById('taskPerson').value=person;document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
+window.saveTask=async function(){var person=document.getElementById('taskPerson').value;var text=document.getElementById('taskTitle').value.trim();if(!text)return;if(!tasks[person])tasks[person]=[];tasks[person].push({id:uid(),text:text,done:false});closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');};
+window.toggleTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t){t.done=!t.done;await saveTasks();}};
+
+window.closeModal=function(id){document.getElementById(id).classList.remove('open');editingEvent=null;editingCell=null;editingDinnerKey=null;};
+document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)closeModal(m.id);});});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(function(m){closeModal(m.id);});if(e.key==='Enter'){if(document.getElementById('eventModal').classList.contains('open'))saveEvent();else if(document.getElementById('dinnerModal').classList.contains('open'))saveDinner();else if(document.getElementById('taskModal').classList.contains('open'))saveTask();}});
 
 function trunc(s,n){return s&&s.length>n?s.slice(0,n-1)+'…':s;}
-function toast(msg){
-  var el=document.getElementById('toast');
-  el.textContent=msg;el.classList.add('show');
-  setTimeout(function(){el.classList.remove('show');},2800);
-}
+function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2800);}
 
+// expiry check elke minuut
+setInterval(updateGcalBtn,60000);
+// gcal refresh elke 10 min
+setInterval(function(){if(isGcalConnected())fetchAllGcalEvents();},600000);
+
+// ── Start ──
 requestWakeLock();
+loadToken();
+updateGcalBtn();
 handleOAuthCallback();
-loadShared().then(function(){if(isGcalConnected())fetchAllGcalEvents();});
-startPolling();
+initFirebase();
+render();
+if(isGcalConnected())fetchAllGcalEvents();
 </script>
 </body>
 </html>
