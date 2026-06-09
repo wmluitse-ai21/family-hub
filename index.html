@@ -138,6 +138,9 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
     <button class="hdr-btn google" id="gcalBtn" onclick="connectGoogle()">
       <i class="ti ti-calendar"></i><span id="gcalLbl">Google Agenda</span>
     </button>
+    <button class="hdr-btn" id="fsBtn" onclick="toggleFullscreen()" title="Volledig scherm">
+      <i class="ti ti-maximize" id="fsIcon"></i>
+    </button>
     <div class="sync-status"><span class="fb-dot" id="fbDot"></span><span id="syncLbl">Verbinden…</span></div>
     <div class="sync-status"><div class="wake-dot" id="wakeDot"></div></div>
   </header>
@@ -567,6 +570,25 @@ function toast(msg){var el=document.getElementById('toast');el.textContent=msg;e
 
 // Maak token globaal beschikbaar voor debugging
 window.getToken = function(){ return gcalToken; };
+
+// Fullscreen / kiosk modus
+window.toggleFullscreen = function(){
+  var icon = document.getElementById('fsIcon');
+  if(!document.fullscreenElement && !document.webkitFullscreenElement){
+    var el = document.documentElement;
+    if(el.requestFullscreen) el.requestFullscreen();
+    else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    icon.className = 'ti ti-minimize';
+  } else {
+    if(document.exitFullscreen) document.exitFullscreen();
+    else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    icon.className = 'ti ti-maximize';
+  }
+};
+document.addEventListener('fullscreenchange', function(){
+  var icon = document.getElementById('fsIcon');
+  icon.className = document.fullscreenElement ? 'ti ti-minimize' : 'ti ti-maximize';
+});
 
 // expiry check elke minuut
 setInterval(updateGcalBtn,60000);
