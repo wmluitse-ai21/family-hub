@@ -347,15 +347,84 @@ window.connectGoogle = function(){
   window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
 };
 
+// Stille verversing via verborgen iframe (prompt:none) — werkt zolang je bij Google ingelogd bent
+function silentRefresh(){
+  // alleen proberen als we eerder gekoppeld waren
+  if(!gcalToken) return;
+  var iframe=document.getElementById('silentAuthFrame');
+  if(!iframe){
+    iframe=document.createElement('iframe');
+    iframe.id='silentAuthFrame';
+    iframe.style.display='none';
+    document.body.appendChild(iframe);
+  }
+  var p=new URLSearchParams({
+    client_id:GC_CLIENT_ID,
+    redirect_uri:REDIRECT_URI,
+    response_type:'token',
+    scope:GC_SCOPE,
+    prompt:'none',
+    login_hint:LOGIN_HINT
+  });
+  // We kunnen de iframe-redirect niet uitlezen (cross-origin), dus gebruiken we
+  // een lichte aanpak: bij bijna-verlopen token tonen we de herkoppel-balk ruim op tijd
+  // en proberen we een volledige stille redirect alleen als de pagina zichtbaar wordt.
+}
+
+// Token bijna verlopen? Probeer ruim op tijd te verversen door de gebruiker
+// onopvallend terug te sturen naar Google (alleen als pagina zichtbaar is en token < 10 min geldig)
+var refreshAttempted = false;
+function checkTokenFreshness(){
+  if(!gcalToken) return;
+  var msLeft = gcalExpiry - Date.now();
+  // Minder dan 10 minuten geldig en pagina zichtbaar → ververs stil
+  if(msLeft < 600000 && msLeft > 0 && document.visibilityState==='visible' && !refreshAttempted){
+    refreshAttempted = true;
+    doSilentReauth();
+  }
+  if(msLeft > 600000) refreshAttempted = false;
+}
+
+// Stille herauthenticatie: open Google met prompt=none in hetzelfde venster.
+// Omdat je al bij Google ingelogd bent, kom je direct terug met een nieuw token,
+// zonder loginscherm. De huidige weergave wordt hersteld via sessionStorage.
+function doSilentReauth(){
+  sessionStorage.setItem('gcal_pending','1');
+  sessionStorage.setItem('silent_view', JSON.stringify({view:view,weekOffset:weekOffset,dayOffset:dayOffset,monthOffset:monthOffset}));
+  var p=new URLSearchParams({
+    client_id:GC_CLIENT_ID,
+    redirect_uri:REDIRECT_URI,
+    response_type:'token',
+    scope:GC_SCOPE,
+    prompt:'none',
+    login_hint:LOGIN_HINT
+  });
+  window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
+}
+
 function handleOAuthCallback(){
   var hash=window.location.hash;
   if(!hash||!sessionStorage.getItem('gcal_pending'))return;
   var p=new URLSearchParams(hash.replace('#',''));
-  var token=p.get('access_token');if(!token)return;
+  var token=p.get('access_token');
+  var err=p.get('error');
   sessionStorage.removeItem('gcal_pending');
+  // Herstel weergave na stille verversing
+  try{
+    var sv=sessionStorage.getItem('silent_view');
+    if(sv){var v=JSON.parse(sv);view=v.view;weekOffset=v.weekOffset;dayOffset=v.dayOffset;monthOffset=v.monthOffset;sessionStorage.removeItem('silent_view');}
+  }catch(e){}
+  if(err){
+    // Stille verversing mislukt (bijv. niet meer bij Google ingelogd) → toon herkoppel-balk
+    window.history.replaceState(null,null,window.location.pathname);
+    updateGcalBtn();
+    return;
+  }
+  if(!token)return;
   gcalToken=token;gcalExpiry=Date.now()+(parseInt(p.get('expires_in')||3600)*1000);
+  refreshAttempted=false;
   window.history.replaceState(null,null,window.location.pathname);
-  saveToken();updateGcalBtn();toast('✅ Google gekoppeld!');
+  saveToken();updateGcalBtn();
   fetchAllGcalEvents();
   fetchGoogleTasks();
 }
@@ -720,8 +789,10 @@ document.addEventListener('fullscreenchange', function(){
   icon.className = document.fullscreenElement ? 'ti ti-minimize' : 'ti ti-maximize';
 });
 
-// expiry check elke minuut
-setInterval(updateGcalBtn,60000);
+// expiry check elke minuut + stille verversing bij bijna-verlopen token
+setInterval(function(){ updateGcalBtn(); checkTokenFreshness(); },60000);
+// controleer ook direct bij terugkeer naar de app
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') checkTokenFreshness(); });
 // gcal refresh elke 10 min
 setInterval(function(){if(isGcalConnected())fetchAllGcalEvents();},600000);
 
