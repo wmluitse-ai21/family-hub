@@ -190,6 +190,12 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
             <button onclick="addShopItem()" style="border:none;background:var(--accent);color:#fff;border-radius:9px;padding:0 11px;cursor:pointer"><i class="ti ti-plus"></i></button>
           </div>
         </div>
+        <div class="side-card">
+          <h3><i class="ti ti-brand-spotify" style="color:#1db954"></i> Muziek</h3>
+          <div id="spotifyContent">
+            <button onclick="connectSpotify()" style="width:100%;border:1.5px solid #1db954;color:#1db954;background:none;border-radius:10px;padding:9px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-brand-spotify"></i> Koppel Spotify</button>
+          </div>
+        </div>
       </div>
       <div style="padding:12px 16px;border-top:1px solid var(--border)">
         <p style="font-size:10px;color:var(--muted);line-height:1.6">Alles wordt automatisch opgeslagen en gesynchroniseerd tussen al je apparaten.</p>
@@ -676,7 +682,7 @@ function renderWeek(){
   h+='</div>';
   for(var pi=0;pi<PERSONS.length;pi++){
     var p=PERSONS[pi];
-    h+='<div class="person-row" style="grid-template-columns:72px repeat(7,1fr)"><div class="row-label"><div class="dot" style="background:var(--'+p+')"></div><span class="name person-color-'+p+'">'+NAMES[p]+'</span></div>';
+    h+='<div class="person-row" style="grid-template-columns:36px repeat(7,1fr)"><div class="row-label" style="justify-content:center;align-items:center"><div class="avatar-dot" style="background:var(--'+p+'-dark);width:20px;height:20px;font-size:9px" title="'+NAMES[p]+'">'+NAMES[p].charAt(0)+'</div></div>';
     for(var di=0;di<dates.length;di++){
       var k=iso(dates[di]),evs=getEventsForDate(k).filter(function(e){return e.person===p;});
       h+='<div class="day-cell'+(isToday(dates[di])?' today-col':'')+'" onclick="openEventModal(\''+p+'\',\''+k+'\',event)">';
@@ -685,11 +691,11 @@ function renderWeek(){
     }
     h+='</div>';
   }
-  h+='<div class="dinner-row"><div class="dinner-label"><i class="ti ti-soup"></i> Diner</div>';
+  h+='<div class="dinner-row" style="grid-template-columns:36px repeat(7,1fr)"><div class="dinner-label" style="padding:8px 4px;justify-content:center" title="Diner"><i class="ti ti-soup"></i></div>';
   for(var di2=0;di2<dates.length;di2++){var dk=iso(dates[di2]),dn=dinners[dk]||{};h+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">'+(dn.meal?'<span class="meal">'+trunc(dn.meal,16)+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" title="Bekijk recept" style="color:var(--abel)"><i class="ti ti-external-link" style="font-size:9px"></i></a>':'')+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>':'')+'</div>';}
   h+='</div>';
   // Weer-rij
-  h+='<div class="dinner-row" style="background:rgba(107,155,201,.06);border-top:1px solid var(--border2)"><div class="dinner-label" style="color:var(--dad-dark)"><i class="ti ti-cloud"></i> Weer</div>';
+  h+='<div class="dinner-row" style="grid-template-columns:36px repeat(7,1fr);background:rgba(107,155,201,.06);border-top:1px solid var(--border2)"><div class="dinner-label" style="color:var(--dad-dark);padding:8px 4px;justify-content:center" title="Weer"><i class="ti ti-cloud"></i></div>';
   for(var wi=0;wi<dates.length;wi++){var wk=iso(dates[wi]),w=weatherCache[wk];h+='<div class="dinner-cell'+(isToday(dates[wi])?' today-col':'')+'" style="cursor:default">'+(w?'<span style="font-size:13px">'+(WEATHER_CODES[w.code]||'').split(' ')[0]+'</span><span style="font-size:9px;color:var(--muted)">'+w.max+'° / '+w.min+'°</span>':'<span class="no-meal">–</span>')+'</div>';}
   h+='</div></div>';
   document.getElementById('calBody').innerHTML=h;
@@ -901,14 +907,175 @@ document.addEventListener('visibilitychange',function(){ if(document.visibilityS
 // gcal refresh elke 10 min
 setInterval(function(){if(isGcalConnected())fetchAllGcalEvents();},600000);
 
+// ── Spotify ────────────────────────────────────────────────────────────────
+var SPOTIFY_CLIENT_ID = '56768bd57da84a108b64c4f28a62b4c9';
+var SPOTIFY_SCOPE = 'user-read-currently-playing user-read-playback-state user-modify-playback-state';
+var spotifyToken = null, spotifyExpiry = 0;
+var spotifyPollTimer = null;
+
+function loadSpotifyToken(){
+  try{ var s=localStorage.getItem('fh-spotify'); if(s){ var g=JSON.parse(s); spotifyToken=g.token||null; spotifyExpiry=g.expiry||0; } }catch(e){}
+}
+function saveSpotifyToken(){
+  try{ localStorage.setItem('fh-spotify', JSON.stringify({token:spotifyToken,expiry:spotifyExpiry})); }catch(e){}
+}
+function isSpotifyConnected(){ return !!(spotifyToken && spotifyExpiry > Date.now()); }
+
+// PKCE helpers voor veilige Spotify login zonder client secret
+function genRandomString(len){
+  var text='',possible='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for(var i=0;i<len;i++)text+=possible.charAt(Math.floor(Math.random()*possible.length));
+  return text;
+}
+async function sha256(plain){
+  var data=new TextEncoder().encode(plain);
+  return await crypto.subtle.digest('SHA-256',data);
+}
+function base64url(buf){
+  return btoa(String.fromCharCode.apply(null,new Uint8Array(buf))).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+}
+
+window.connectSpotify = async function(){
+  var verifier=genRandomString(64);
+  localStorage.setItem('fh-spotify-verifier',verifier);
+  var challenge=base64url(await sha256(verifier));
+  sessionStorage.setItem('spotify_pending','1');
+  var p=new URLSearchParams({
+    client_id:SPOTIFY_CLIENT_ID,
+    response_type:'code',
+    redirect_uri:REDIRECT_URI,
+    scope:SPOTIFY_SCOPE,
+    code_challenge_method:'S256',
+    code_challenge:challenge
+  });
+  window.location.href='https://accounts.spotify.com/authorize?'+p.toString();
+};
+
+async function handleSpotifyCallback(){
+  var params=new URLSearchParams(window.location.search);
+  var code=params.get('code');
+  if(!code||!sessionStorage.getItem('spotify_pending'))return;
+  sessionStorage.removeItem('spotify_pending');
+  var verifier=localStorage.getItem('fh-spotify-verifier');
+  try{
+    var r=await fetch('https://accounts.spotify.com/api/token',{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({
+        client_id:SPOTIFY_CLIENT_ID,
+        grant_type:'authorization_code',
+        code:code,
+        redirect_uri:REDIRECT_URI,
+        code_verifier:verifier
+      })
+    });
+    var d=await r.json();
+    if(d.access_token){
+      spotifyToken=d.access_token;
+      spotifyExpiry=Date.now()+(d.expires_in*1000);
+      if(d.refresh_token)localStorage.setItem('fh-spotify-refresh',d.refresh_token);
+      saveSpotifyToken();
+      toast('✅ Spotify gekoppeld!');
+    }
+  }catch(e){toast('Spotify koppelen mislukt');}
+  window.history.replaceState(null,null,window.location.pathname);
+}
+
+// Ververs Spotify token via refresh token
+async function refreshSpotifyToken(){
+  var refresh=localStorage.getItem('fh-spotify-refresh');
+  if(!refresh)return false;
+  try{
+    var r=await fetch('https://accounts.spotify.com/api/token',{
+      method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,grant_type:'refresh_token',refresh_token:refresh})
+    });
+    var d=await r.json();
+    if(d.access_token){
+      spotifyToken=d.access_token;
+      spotifyExpiry=Date.now()+(d.expires_in*1000);
+      if(d.refresh_token)localStorage.setItem('fh-spotify-refresh',d.refresh_token);
+      saveSpotifyToken();
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+async function updateNowPlaying(){
+  if(!isSpotifyConnected()){
+    if(localStorage.getItem('fh-spotify-refresh')){ var ok=await refreshSpotifyToken(); if(!ok)return; }
+    else return;
+  }
+  try{
+    var r=await fetch('https://api.spotify.com/v1/me/player/currently-playing',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    if(r.status===204){ renderSpotify(null); return; }
+    if(r.status===401){ await refreshSpotifyToken(); return; }
+    if(!r.ok)return;
+    var d=await r.json();
+    renderSpotify(d);
+  }catch(e){}
+}
+
+function renderSpotify(data){
+  var el=document.getElementById('spotifyContent');
+  if(!el)return;
+  if(!data||!data.item){
+    el.innerHTML='<p style="font-size:10px;color:var(--muted);font-style:italic;text-align:center;padding:8px">Er speelt nu niets</p>'+
+      '<div style="display:flex;justify-content:center;gap:14px;margin-top:6px">'+spotifyControls()+'</div>';
+    return;
+  }
+  var t=data.item;
+  var cover=t.album&&t.album.images&&t.album.images[0]?t.album.images[0].url:'';
+  var artists=(t.artists||[]).map(function(a){return a.name;}).join(', ');
+  var playing=data.is_playing;
+  el.innerHTML=
+    '<div style="display:flex;gap:10px;align-items:center">'+
+      (cover?'<img src="'+cover+'" style="width:48px;height:48px;border-radius:8px;flex-shrink:0;object-fit:cover"/>':'')+
+      '<div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t.name+'</div><div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+artists+'</div></div>'+
+    '</div>'+
+    '<div style="display:flex;justify-content:center;align-items:center;gap:18px;margin-top:10px">'+spotifyControls(playing)+'</div>';
+}
+
+function spotifyControls(playing){
+  return '<i class="ti ti-player-skip-back-filled" style="font-size:18px;color:var(--text);cursor:pointer" onclick="spotifyPrev()"></i>'+
+    '<i class="ti ti-'+(playing?'player-pause-filled':'player-play-filled')+'" style="font-size:26px;color:#1db954;cursor:pointer" onclick="spotifyPlayPause('+(!!playing)+')"></i>'+
+    '<i class="ti ti-player-skip-forward-filled" style="font-size:18px;color:var(--text);cursor:pointer" onclick="spotifyNext()"></i>';
+}
+
+window.spotifyPlayPause=async function(isPlaying){
+  if(!isSpotifyConnected())return;
+  var url=isPlaying?'https://api.spotify.com/v1/me/player/pause':'https://api.spotify.com/v1/me/player/play';
+  try{ await fetch(url,{method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken}}); setTimeout(updateNowPlaying,400); }catch(e){}
+};
+window.spotifyNext=async function(){
+  if(!isSpotifyConnected())return;
+  try{ await fetch('https://api.spotify.com/v1/me/player/next',{method:'POST',headers:{'Authorization':'Bearer '+spotifyToken}}); setTimeout(updateNowPlaying,500); }catch(e){}
+};
+window.spotifyPrev=async function(){
+  if(!isSpotifyConnected())return;
+  try{ await fetch('https://api.spotify.com/v1/me/player/previous',{method:'POST',headers:{'Authorization':'Bearer '+spotifyToken}}); setTimeout(updateNowPlaying,500); }catch(e){}
+};
+
+function startSpotify(){
+  if(isSpotifyConnected()||localStorage.getItem('fh-spotify-refresh')){
+    updateNowPlaying();
+    if(spotifyPollTimer)clearInterval(spotifyPollTimer);
+    spotifyPollTimer=setInterval(updateNowPlaying,10000); // elke 10s verversen
+  }
+}
+
 // ── Start ──
 requestWakeLock();
 loadToken();
+loadSpotifyToken();
 updateGcalBtn();
 handleOAuthCallback();
+handleSpotifyCallback();
 initFirebase();
 render();
 fetchWeather();
+startSpotify();
 if(isGcalConnected()){fetchAllGcalEvents();fetchGoogleTasks();}
 // ververs weer elke 3 uur
 setInterval(fetchWeather,3*3600*1000);
