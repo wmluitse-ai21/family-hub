@@ -156,6 +156,12 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
     </div>
     <div class="sidebar">
       <div class="sidebar-inner">
+        <h3><i class="ti ti-pin" style="color:var(--muted)"></i> Prikbord</h3>
+        <div id="noticeBoard"></div>
+        <div style="display:flex;gap:5px;margin-top:6px;margin-bottom:14px">
+          <input type="text" id="noticeInput" placeholder="Mededeling…" style="flex:1;padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg);font-size:11px;outline:none" onkeydown="if(event.key==='Enter')addNotice()"/>
+          <button onclick="addNotice()" style="border:none;background:var(--abel);color:#fff;border-radius:7px;padding:0 10px;cursor:pointer"><i class="ti ti-plus"></i></button>
+        </div>
         <h3><i class="ti ti-checklist" style="color:var(--muted)"></i> Taken deze week</h3>
         <div id="taskList"></div>
         <h3 style="margin-top:16px"><i class="ti ti-shopping-cart" style="color:var(--muted)"></i> Boodschappen</h3>
@@ -164,7 +170,9 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
           <input type="text" id="shopInput" placeholder="bijv. Pindakaas" style="flex:1;padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg);font-size:11px;outline:none" onkeydown="if(event.key==='Enter')addShopItem()"/>
           <button onclick="addShopItem()" style="border:none;background:var(--abel);color:#fff;border-radius:7px;padding:0 10px;cursor:pointer"><i class="ti ti-plus"></i></button>
         </div>
-        <button onclick="shareToBring()" style="width:100%;margin-top:8px;border:1.5px solid #2bb673;color:#2bb673;background:none;border-radius:8px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px"><i class="ti ti-share"></i> Deel naar Bring!</button>
+        <h3 style="margin-top:16px"><i class="ti ti-cake" style="color:var(--muted)"></i> Verjaardagen &amp; datums</h3>
+        <div id="birthdayList"></div>
+        <button onclick="openBirthdayModal()" class="add-task-btn" style="margin-top:4px"><i class="ti ti-plus"></i> Toevoegen</button>
       </div>
       <div style="padding:10px 12px;border-top:1px solid var(--border)">
         <p style="font-size:10px;color:var(--muted);line-height:1.6">Alles wordt automatisch opgeslagen en gesynchroniseerd tussen al je apparaten.</p>
@@ -227,6 +235,23 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
   </div>
 </div>
 
+<div class="modal-overlay" id="birthdayModal">
+  <div class="modal">
+    <h2><i class="ti ti-cake"></i> Verjaardag / datum</h2>
+    <label>Naam / gelegenheid</label>
+    <input type="text" id="bdayName" placeholder="bijv. Oma jarig"/>
+    <label>Datum</label>
+    <input type="date" id="bdayDate"/>
+    <label>Elk jaar herhalen?</label>
+    <select id="bdayRepeat"><option value="yes">Ja – jaarlijks</option><option value="no">Nee – eenmalig</option></select>
+    <div class="modal-btns">
+      <button class="btn-delete" id="bdayDeleteBtn" onclick="deleteBirthday()" style="display:none"><i class="ti ti-trash"></i></button>
+      <button class="btn-cancel" onclick="closeModal('birthdayModal')">Annuleren</button>
+      <button class="btn-save" onclick="saveBirthday()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -259,7 +284,10 @@ var REDIRECT_URI = 'https://wmluitse-ai21.github.io/family-hub/';
 // Data — localEvents/dinners/tasks in Firebase; gcalEvents from Google
 var localEvents = {}, gcalEvents = {}, dinners = {}, tasks = {mom:[],dad:[],pepijn:[],abel:[]};
 var shopping = [];
+var notices = [];
+var birthdays = [];
 var gcalToken = null, gcalExpiry = 0;
+var editingBirthday = null;
 var view = 'week', weekOffset = 0, dayOffset = 0, monthOffset = 0;
 var editingEvent = null, editingDinnerKey = null, editingCell = null;
 var fbReady = false;
@@ -305,6 +333,17 @@ function initFirebase(){
     shopping = snap.val() || [];
     renderShopping();
   });
+  // prikbord
+  onValue(ref(db,SECRET+'/notices'), function(snap){
+    notices = snap.val() || [];
+    renderNotices();
+  });
+  // verjaardagen
+  onValue(ref(db,SECRET+'/birthdays'), function(snap){
+    birthdays = snap.val() || [];
+    renderBirthdays();
+    render();
+  });
   // connection status
   onValue(ref(db,'.info/connected'), function(snap){
     fbReady = snap.val()===true;
@@ -321,6 +360,8 @@ async function saveLocalEvents(){ await fbSet('localEvents', localEvents); setSy
 async function saveDinners(){ await fbSet('dinners', dinners); setSyncLbl('Opgeslagen '+now()); }
 async function saveTasks(){ await fbSet('tasks', tasks); setSyncLbl('Opgeslagen '+now()); }
 async function saveShopping(){ await fbSet('shopping', shopping); setSyncLbl('Opgeslagen '+now()); }
+async function saveNotices(){ await fbSet('notices', notices); setSyncLbl('Opgeslagen '+now()); }
+async function saveBirthdays(){ await fbSet('birthdays', birthdays); setSyncLbl('Opgeslagen '+now()); }
 
 function setSyncLbl(t){ document.getElementById('syncLbl').textContent=t; }
 function now(){ return new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
@@ -581,6 +622,29 @@ function iso(d){return d.toISOString().slice(0,10);}
 function isToday(d){var t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
+// ── Weer (Open-Meteo, gratis, geen sleutel) — Voorburg ─────────────────────
+var weatherCache = {};
+var WEATHER_CODES = {0:'☀️ Helder',1:'🌤️ Licht bewolkt',2:'⛅ Half bewolkt',3:'☁️ Bewolkt',45:'🌫️ Mist',48:'🌫️ Mist',51:'🌦️ Motregen',53:'🌦️ Motregen',55:'🌦️ Motregen',61:'🌧️ Regen',63:'🌧️ Regen',65:'🌧️ Zware regen',71:'🌨️ Sneeuw',73:'🌨️ Sneeuw',75:'❄️ Sneeuw',80:'🌦️ Buien',81:'🌦️ Buien',82:'⛈️ Zware buien',95:'⛈️ Onweer',96:'⛈️ Onweer'};
+async function fetchWeather(){
+  try{
+    var r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.07&longitude=4.36&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FAmsterdam&forecast_days=16');
+    if(!r.ok)return;
+    var d=await r.json();
+    if(d.daily){
+      for(var i=0;i<d.daily.time.length;i++){
+        weatherCache[d.daily.time[i]]={code:d.daily.weather_code[i],max:Math.round(d.daily.temperature_2m_max[i]),min:Math.round(d.daily.temperature_2m_min[i])};
+      }
+      render();
+    }
+  }catch(e){}
+}
+function weatherFor(dateKey){
+  var w=weatherCache[dateKey];
+  if(!w)return '';
+  var desc=WEATHER_CODES[w.code]||'';
+  return desc+' '+w.max+'° / '+w.min+'°';
+}
+
 // ── Weergave ──
 window.setView=function(v){view=v;document.querySelectorAll('.view-tab').forEach(function(t,i){t.classList.toggle('active',['week','day','month'][i]===v);});render();};
 window.changePeriod=function(d){if(view==='week')weekOffset+=d;else if(view==='day')dayOffset+=d;else monthOffset+=d;render();};
@@ -592,7 +656,7 @@ function renderWeek(){
   var dates=getWeekDates(weekOffset);
   document.getElementById('periodLabel').textContent=dates[0].toLocaleDateString('nl-NL',{month:'short',day:'numeric'})+' – '+dates[6].toLocaleDateString('nl-NL',{month:'short',day:'numeric'});
   var h='<div class="grid-wrapper"><div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)"><div class="day-header"></div>';
-  for(var i=0;i<dates.length;i++)h+='<div class="day-header'+(isToday(dates[i])?' today':'')+'">'+DAYS[i]+'<span>'+dates[i].getDate()+'</span></div>';
+  for(var i=0;i<dates.length;i++){var bdays=birthdaysOn(iso(dates[i]));h+='<div class="day-header'+(isToday(dates[i])?' today':'')+'">'+DAYS[i]+'<span>'+dates[i].getDate()+'</span>'+(bdays.length?'<div style="font-size:10px" title="'+bdays.map(function(b){return b.name;}).join(', ')+'">🎂</div>':'')+'</div>';}
   h+='</div>';
   for(var pi=0;pi<PERSONS.length;pi++){
     var p=PERSONS[pi];
@@ -615,7 +679,16 @@ function renderDay(){
   var d=getDayDate(dayOffset),k=iso(d);
   document.getElementById('periodLabel').textContent=d.toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
   var dn=dinners[k]||{};
-  var h='<div class="day-view-grid"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);border-bottom:1px solid var(--border)"><div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>';
+  var weather=weatherFor(k);
+  var bdays=birthdaysOn(k);
+  var h='';
+  if(weather||bdays.length){
+    h+='<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">';
+    if(weather)h+='<div style="font-size:13px;font-weight:500"><i class="ti ti-cloud" style="color:var(--dad);margin-right:4px"></i>'+weather+'</div>';
+    if(bdays.length)h+='<div style="font-size:13px;font-weight:500">🎂 '+bdays.map(function(b){return b.name;}).join(', ')+'</div>';
+    h+='</div>';
+  }
+  h+='<div class="day-view-grid"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);border-bottom:1px solid var(--border)"><div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>';
   for(var pi=0;pi<PERSONS.length;pi++)h+='<div class="day-col-hdr person-color-'+PERSONS[pi]+'" style="background:var(--'+PERSONS[pi]+'-light)">'+NAMES[PERSONS[pi]]+'</div>';
   h+='</div><div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px"><div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center"><i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i><span style="font-size:9px;color:var(--muted);margin-top:2px">Afspraken</span></div>';
   for(var pi2=0;pi2<PERSONS.length;pi2++){var p2=PERSONS[pi2],evs=getEventsForDate(k).filter(function(e){return e.person===p2;});h+='<div class="day-view-cell" onclick="openEventModal(\''+p2+'\',\''+k+'\',event)">';for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];h+='<div class="event-chip bg-'+p2+(ev.fromGcal?' gcal':'')+'" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')">'+(ev.fromGcal?'<i class="ti ti-calendar"></i>':'')+(ev.time?'<strong>'+ev.time+'</strong> ':'')+ev.title+'</div>';}h+='<button class="add-btn" style="opacity:.4"><i class="ti ti-plus"></i></button></div>';}
@@ -629,7 +702,7 @@ function renderMonth(){
   var h='<div class="month-grid"><div class="month-weekdays">';
   for(var i=0;i<DAYS.length;i++)h+='<div class="month-weekday">'+DAYS[i]+'</div>';
   h+='</div><div class="month-cells">';
-  for(var di=0;di<md.dates.length;di++){var d=md.dates[di],k=iso(d),inM=d.getMonth()===md.month.getMonth(),dn=dinners[k]||{},dayEvs=getEventsForDate(k);h+='<div class="month-cell'+((!inM)?' other-month':'')+(isToday(d)?' today-col':'')+'" onclick="goToDay(\''+k+'\')"><div class="month-day-num">'+d.getDate()+'</div>';for(var pi=0;pi<PERSONS.length;pi++){var pevs=dayEvs.filter(function(e){return e.person===PERSONS[pi];});for(var ei=0;ei<pevs.length;ei++)h+='<div class="month-ev-chip bg-'+PERSONS[pi]+'">'+trunc(pevs[ei].title,12)+'</div>';}if(dn.meal)h+='<div class="month-dinner"><i class="ti ti-soup" style="font-size:8px"></i>'+trunc(dn.meal,12)+'</div>';h+='</div>';}
+  for(var di=0;di<md.dates.length;di++){var d=md.dates[di],k=iso(d),inM=d.getMonth()===md.month.getMonth(),dn=dinners[k]||{},dayEvs=getEventsForDate(k),bdays=birthdaysOn(k);h+='<div class="month-cell'+((!inM)?' other-month':'')+(isToday(d)?' today-col':'')+'" onclick="goToDay(\''+k+'\')"><div class="month-day-num">'+d.getDate()+'</div>';if(bdays.length)h+='<div class="month-ev-chip" style="background:#fff0d4;color:#7a4f00">🎂 '+trunc(bdays[0].name,10)+'</div>';for(var pi=0;pi<PERSONS.length;pi++){var pevs=dayEvs.filter(function(e){return e.person===PERSONS[pi];});for(var ei=0;ei<pevs.length;ei++)h+='<div class="month-ev-chip bg-'+PERSONS[pi]+'">'+trunc(pevs[ei].title,12)+'</div>';}if(dn.meal)h+='<div class="month-dinner"><i class="ti ti-soup" style="font-size:8px"></i>'+trunc(dn.meal,12)+'</div>';h+='</div>';}
   h+='</div></div>';
   document.getElementById('calBody').innerHTML=h;
 }
@@ -760,7 +833,19 @@ window.saveTask=async function(){var person=document.getElementById('taskPerson'
 window.toggleTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t){t.done=!t.done;if(isGcalConnected()&&t.gtaskId)updateGoogleTaskStatus(t.gtaskId,t.done,person);await saveTasks();}};
 window.removeTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t&&isGcalConnected()&&t.gtaskId)deleteGoogleTask(t.gtaskId,person);tasks[person]=(tasks[person]||[]).filter(function(x){return x.id!==id;});await saveTasks();toast('Taak verwijderd');};
 
-window.closeModal=function(id){document.getElementById(id).classList.remove('open');editingEvent=null;editingCell=null;editingDinnerKey=null;};
+// Verjaardagen die op een bepaalde datum vallen
+function birthdaysOn(dateKey){
+  var d=new Date(dateKey);
+  return birthdays.filter(function(b){
+    var bd=new Date(b.date);
+    if(b.repeat==='yes'){
+      return bd.getDate()===d.getDate()&&bd.getMonth()===d.getMonth();
+    }
+    return b.date===dateKey;
+  });
+}
+
+window.closeModal=function(id){document.getElementById(id).classList.remove('open');editingEvent=null;editingCell=null;editingDinnerKey=null;editingBirthday=null;};
 document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)closeModal(m.id);});});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(function(m){closeModal(m.id);});if(e.key==='Enter'){if(document.getElementById('eventModal').classList.contains('open'))saveEvent();else if(document.getElementById('dinnerModal').classList.contains('open'))saveDinner();else if(document.getElementById('taskModal').classList.contains('open'))saveTask();}});
 
@@ -803,7 +888,10 @@ updateGcalBtn();
 handleOAuthCallback();
 initFirebase();
 render();
+fetchWeather();
 if(isGcalConnected()){fetchAllGcalEvents();fetchGoogleTasks();}
+// ververs weer elke 3 uur
+setInterval(fetchWeather,3*3600*1000);
 </script>
 </body>
 </html>
