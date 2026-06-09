@@ -168,12 +168,6 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
   </header>
   <div class="main">
     <div class="calendar-area">
-      <div class="family-avatars">
-        <div class="avatar-chip" style="border-color:var(--mom-dark)"><div class="avatar-dot" style="background:var(--mom-dark)">M</div><span style="color:var(--mom-dark)">Mama</span></div>
-        <div class="avatar-chip" style="border-color:var(--dad-dark)"><div class="avatar-dot" style="background:var(--dad-dark)">D</div><span style="color:var(--dad-dark)">Papa</span></div>
-        <div class="avatar-chip" style="border-color:var(--pepijn-dark)"><div class="avatar-dot" style="background:var(--pepijn-dark)">P</div><span style="color:var(--pepijn-dark)">Pepijn</span></div>
-        <div class="avatar-chip" style="border-color:var(--abel-dark)"><div class="avatar-dot" style="background:var(--abel-dark)">A</div><span style="color:var(--abel-dark)">Abel</span></div>
-      </div>
       <div id="calBody"></div>
     </div>
     <div class="sidebar">
@@ -909,7 +903,7 @@ setInterval(function(){if(isGcalConnected())fetchAllGcalEvents();},600000);
 
 // ── Spotify ────────────────────────────────────────────────────────────────
 var SPOTIFY_CLIENT_ID = '56768bd57da84a108b64c4f28a62b4c9';
-var SPOTIFY_SCOPE = 'user-read-currently-playing user-read-playback-state user-modify-playback-state';
+var SPOTIFY_SCOPE = 'user-read-currently-playing user-read-playback-state user-modify-playback-state user-read-recently-played';
 var spotifyToken = null, spotifyExpiry = 0;
 var spotifyPollTimer = null;
 
@@ -1009,32 +1003,56 @@ async function updateNowPlaying(){
   }
   try{
     var r=await fetch('https://api.spotify.com/v1/me/player/currently-playing',{headers:{'Authorization':'Bearer '+spotifyToken}});
-    if(r.status===204){ renderSpotify(null); return; }
+    var nowData=null;
     if(r.status===401){ await refreshSpotifyToken(); return; }
-    if(!r.ok)return;
-    var d=await r.json();
-    renderSpotify(d);
+    if(r.status!==204&&r.ok){ nowData=await r.json(); }
+    // recent afgespeeld ophalen
+    var recent=[];
+    try{
+      var rr=await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=4',{headers:{'Authorization':'Bearer '+spotifyToken}});
+      if(rr.ok){ var rd=await rr.json(); recent=rd.items||[]; }
+    }catch(e){}
+    renderSpotify(nowData, recent);
   }catch(e){}
 }
 
-function renderSpotify(data){
+function renderSpotify(data, recent){
   var el=document.getElementById('spotifyContent');
   if(!el)return;
-  if(!data||!data.item){
-    el.innerHTML='<p style="font-size:10px;color:var(--muted);font-style:italic;text-align:center;padding:8px">Er speelt nu niets</p>'+
-      '<div style="display:flex;justify-content:center;gap:14px;margin-top:6px">'+spotifyControls()+'</div>';
-    return;
+  var h='';
+  // Nu spelend
+  if(data&&data.item){
+    var t=data.item;
+    var cover=t.album&&t.album.images&&t.album.images[0]?t.album.images[0].url:'';
+    var artists=(t.artists||[]).map(function(a){return a.name;}).join(', ');
+    var playing=data.is_playing;
+    h+='<div style="display:flex;gap:10px;align-items:center">'+
+        (cover?'<img src="'+cover+'" style="width:48px;height:48px;border-radius:8px;flex-shrink:0;object-fit:cover"/>':'')+
+        '<div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t.name+'</div><div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+artists+'</div></div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:center;align-items:center;gap:18px;margin-top:10px">'+spotifyControls(playing)+'</div>';
+  } else {
+    h+='<p style="font-size:10px;color:var(--muted);font-style:italic;text-align:center;padding:6px">Er speelt nu niets</p>'+
+      '<div style="display:flex;justify-content:center;gap:18px;margin-top:2px">'+spotifyControls(false)+'</div>';
   }
-  var t=data.item;
-  var cover=t.album&&t.album.images&&t.album.images[0]?t.album.images[0].url:'';
-  var artists=(t.artists||[]).map(function(a){return a.name;}).join(', ');
-  var playing=data.is_playing;
-  el.innerHTML=
-    '<div style="display:flex;gap:10px;align-items:center">'+
-      (cover?'<img src="'+cover+'" style="width:48px;height:48px;border-radius:8px;flex-shrink:0;object-fit:cover"/>':'')+
-      '<div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+t.name+'</div><div style="font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+artists+'</div></div>'+
-    '</div>'+
-    '<div style="display:flex;justify-content:center;align-items:center;gap:18px;margin-top:10px">'+spotifyControls(playing)+'</div>';
+  // Recent afgespeeld
+  if(recent&&recent.length){
+    h+='<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px"><div style="font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Recent afgespeeld</div>';
+    var seen={};
+    for(var i=0;i<recent.length;i++){
+      var rt=recent[i].track;
+      if(!rt||seen[rt.id])continue;
+      seen[rt.id]=true;
+      var rcover=rt.album&&rt.album.images&&rt.album.images[rt.album.images.length-1]?rt.album.images[rt.album.images.length-1].url:'';
+      var rartists=(rt.artists||[]).map(function(a){return a.name;}).join(', ');
+      h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">'+
+          (rcover?'<img src="'+rcover+'" style="width:30px;height:30px;border-radius:5px;flex-shrink:0;object-fit:cover"/>':'')+
+          '<div style="min-width:0;flex:1"><div style="font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+rt.name+'</div><div style="font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+rartists+'</div></div>'+
+        '</div>';
+    }
+    h+='</div>';
+  }
+  el.innerHTML=h;
 }
 
 function spotifyControls(playing){
