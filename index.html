@@ -228,6 +228,8 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
+// Geheime map — moet overeenkomen met de Firebase regels
+const SECRET = 'luitse-rodenburg-2026';
 
 var PERSONS = ['mom','dad','pepijn','abel'];
 var NAMES = {mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
@@ -265,17 +267,17 @@ document.addEventListener('visibilitychange',function(){ if(document.visibilityS
 // ── Firebase realtime listeners ──
 function initFirebase(){
   // localEvents
-  onValue(ref(db,'localEvents'), function(snap){
+  onValue(ref(db,SECRET+'/localEvents'), function(snap){
     localEvents = snap.val() || {};
     render();
   });
   // dinners
-  onValue(ref(db,'dinners'), function(snap){
+  onValue(ref(db,SECRET+'/dinners'), function(snap){
     dinners = snap.val() || {};
     render();
   });
   // tasks
-  onValue(ref(db,'tasks'), function(snap){
+  onValue(ref(db,SECRET+'/tasks'), function(snap){
     var t = snap.val() || {};
     tasks = {mom:t.mom||[],dad:t.dad||[],pepijn:t.pepijn||[],abel:t.abel||[]};
     renderTasks();
@@ -290,7 +292,7 @@ function initFirebase(){
 
 // Schrijf naar Firebase
 function fbSet(path, value){
-  return set(ref(db,path), value).catch(function(e){ toast('Opslagfout: '+e.message); });
+  return set(ref(db,SECRET+'/'+path), value).catch(function(e){ toast('Opslagfout: '+e.message); });
 }
 async function saveLocalEvents(){ await fbSet('localEvents', localEvents); setSyncLbl('Opgeslagen '+now()); }
 async function saveDinners(){ await fbSet('dinners', dinners); setSyncLbl('Opgeslagen '+now()); }
