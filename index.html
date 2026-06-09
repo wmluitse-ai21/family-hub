@@ -668,6 +668,10 @@ function renderWeek(){
   }
   h+='<div class="dinner-row"><div class="dinner-label"><i class="ti ti-soup"></i> Diner</div>';
   for(var di2=0;di2<dates.length;di2++){var dk=iso(dates[di2]),dn=dinners[dk]||{};h+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">'+(dn.meal?'<span class="meal">'+trunc(dn.meal,16)+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" title="Bekijk recept" style="color:var(--abel)"><i class="ti ti-external-link" style="font-size:9px"></i></a>':'')+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>':'')+'</div>';}
+  h+='</div>';
+  // Weer-rij
+  h+='<div class="dinner-row" style="background:#eef4fb;border-top:1px solid var(--border)"><div class="dinner-label" style="color:var(--dad-dark)"><i class="ti ti-cloud"></i> Weer</div>';
+  for(var wi=0;wi<dates.length;wi++){var wk=iso(dates[wi]),w=weatherCache[wk];h+='<div class="dinner-cell'+(isToday(dates[wi])?' today-col':'')+'" style="cursor:default">'+(w?'<span style="font-size:13px">'+(WEATHER_CODES[w.code]||'').split(' ')[0]+'</span><span style="font-size:9px;color:var(--muted)">'+w.max+'° / '+w.min+'°</span>':'<span class="no-meal">–</span>')+'</div>';}
   h+='</div></div>';
   document.getElementById('calBody').innerHTML=h;
 }
