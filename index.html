@@ -431,30 +431,46 @@ async function deleteGcalEvent(ev){
 }
 
 // ── Google Tasks ───────────────────────────────────────────────────────────
-// Haalt de standaard takenlijst op en voegt toe / werkt bij
-var googleTaskListId = null;
+// Aparte takenlijst per persoon in Mama's Google Tasks account
+var taskListIds = {}; // {mom:'id', dad:'id', ...}
 
-async function getDefaultTaskList(){
-  if(googleTaskListId) return googleTaskListId;
-  if(!isGcalConnected()) return null;
+// Zorg dat er voor elke persoon een takenlijst bestaat; maak aan indien nodig
+async function ensureTaskLists(){
+  if(!isGcalConnected()) return false;
   try{
-    var r=await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists',{headers:{'Authorization':'Bearer '+gcalToken}});
-    if(!r.ok)return null;
+    var r=await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100',{headers:{'Authorization':'Bearer '+gcalToken}});
+    if(!r.ok)return false;
     var d=await r.json();
-    if(d.items&&d.items.length){googleTaskListId=d.items[0].id;return googleTaskListId;}
-  }catch(e){}
-  return null;
+    var existing={};
+    (d.items||[]).forEach(function(l){ existing[l.title]=l.id; });
+    for(var pi=0;pi<PERSONS.length;pi++){
+      var person=PERSONS[pi];
+      var listName='Familie Hub - '+NAMES[person];
+      if(existing[listName]){
+        taskListIds[person]=existing[listName];
+      } else {
+        // Maak de lijst aan
+        var cr=await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists',{
+          method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
+          body:JSON.stringify({title:listName})
+        });
+        if(cr.ok){var cd=await cr.json();taskListIds[person]=cd.id;}
+      }
+    }
+    return true;
+  }catch(e){return false;}
 }
 
-// Stuur een nieuwe taak naar Google Tasks, geef Google task-id terug
+// Stuur een nieuwe taak naar de takenlijst van de juiste persoon
 async function pushTaskToGoogle(text, person){
   if(!isGcalConnected())return null;
-  var listId=await getDefaultTaskList();
-  if(!listId){toast('Kon Google takenlijst niet vinden');return null;}
+  if(!taskListIds[person]) await ensureTaskLists();
+  var listId=taskListIds[person];
+  if(!listId){toast('Kon takenlijst van '+NAMES[person]+' niet vinden');return null;}
   try{
     var r=await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+listId+'/tasks',{
       method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
-      body:JSON.stringify({title:'['+NAMES[person]+'] '+text})
+      body:JSON.stringify({title:text})
     });
     if(r.ok){var d=await r.json();return d.id;}
     else{var err=await r.json();toast('Google Tasks fout: '+(err.error&&err.error.message||r.status));}
@@ -463,10 +479,10 @@ async function pushTaskToGoogle(text, person){
 }
 
 // Markeer een Google taak als voltooid/onvoltooid
-async function updateGoogleTaskStatus(gtaskId, done){
-  if(!isGcalConnected()||!gtaskId||!googleTaskListId)return;
+async function updateGoogleTaskStatus(gtaskId, done, person){
+  if(!isGcalConnected()||!gtaskId||!taskListIds[person])return;
   try{
-    await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+googleTaskListId+'/tasks/'+gtaskId,{
+    await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+taskListIds[person]+'/tasks/'+gtaskId,{
       method:'PATCH',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
       body:JSON.stringify({status:done?'completed':'needsAction'})
     });
@@ -474,18 +490,18 @@ async function updateGoogleTaskStatus(gtaskId, done){
 }
 
 // Verwijder een Google taak
-async function deleteGoogleTask(gtaskId){
-  if(!isGcalConnected()||!gtaskId||!googleTaskListId)return;
+async function deleteGoogleTask(gtaskId, person){
+  if(!isGcalConnected()||!gtaskId||!taskListIds[person])return;
   try{
-    await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+googleTaskListId+'/tasks/'+gtaskId,{
+    await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+taskListIds[person]+'/tasks/'+gtaskId,{
       method:'DELETE',headers:{'Authorization':'Bearer '+gcalToken}
     });
   }catch(e){}
 }
 
-// Laad takenlijst-id na koppeling (voor latere acties)
+// Laad takenlijsten na koppeling
 async function fetchGoogleTasks(){
-  await getDefaultTaskList();
+  await ensureTaskLists();
 }
 
 // ── Datum helpers ──
@@ -551,7 +567,7 @@ function renderMonth(){
 
 function renderTasks(){
   var h='';
-  for(var pi=0;pi<PERSONS.length;pi++){var p=PERSONS[pi],pt=tasks[p]||[];h+='<div class="task-person"><div class="task-person-hdr"><div style="width:8px;height:8px;border-radius:50%;background:var(--'+p+')"></div><span class="person-color-'+p+'">'+NAMES[p]+'</span></div>';for(var ti=0;ti<pt.length;ti++){var t=pt[ti];h+='<div class="task-item" onclick="toggleTask(\''+p+'\',\''+t.id+'\')"><div class="task-check'+(t.done?' done':'')+'">'+( t.done?'<i class="ti ti-check"></i>':'')+'</div><span class="task-text'+(t.done?' done':'')+'">'+t.text+'</span></div>';}h+='<button class="add-task-btn" onclick="openTaskModal(\''+p+'\')"><i class="ti ti-plus"></i> Toevoegen</button></div>';}
+  for(var pi=0;pi<PERSONS.length;pi++){var p=PERSONS[pi],pt=tasks[p]||[];h+='<div class="task-person"><div class="task-person-hdr"><div style="width:8px;height:8px;border-radius:50%;background:var(--'+p+')"></div><span class="person-color-'+p+'">'+NAMES[p]+'</span></div>';for(var ti=0;ti<pt.length;ti++){var t=pt[ti];h+='<div class="task-item" style="justify-content:space-between"><div style="display:flex;align-items:flex-start;gap:5px;flex:1" onclick="toggleTask(\''+p+'\',\''+t.id+'\')"><div class="task-check'+(t.done?' done':'')+'">'+( t.done?'<i class="ti ti-check"></i>':'')+'</div><span class="task-text'+(t.done?' done':'')+'">'+t.text+'</span></div><i class="ti ti-x" style="font-size:11px;color:var(--muted);cursor:pointer" onclick="removeTask(\''+p+'\',\''+t.id+'\')"></i></div>';}h+='<button class="add-task-btn" onclick="openTaskModal(\''+p+'\')"><i class="ti ti-plus"></i> Toevoegen</button></div>';}
   document.getElementById('taskList').innerHTML=h;
 }
 
@@ -672,7 +688,8 @@ window.clearDinner=async function(){delete dinners[editingDinnerKey];closeModal(
 
 window.openTaskModal=function(person){document.getElementById('taskPerson').value=person;document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
 window.saveTask=async function(){var person=document.getElementById('taskPerson').value;var text=document.getElementById('taskTitle').value.trim();if(!text)return;if(!tasks[person])tasks[person]=[];var newTask={id:uid(),text:text,done:false};if(isGcalConnected()){var gid=await pushTaskToGoogle(text,person);if(gid){newTask.gtaskId=gid;toast('Taak ook in Google Tasks gezet');}}tasks[person].push(newTask);closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');};
-window.toggleTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t){t.done=!t.done;if(isGcalConnected()&&t.gtaskId)updateGoogleTaskStatus(t.gtaskId,t.done);await saveTasks();}};
+window.toggleTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t){t.done=!t.done;if(isGcalConnected()&&t.gtaskId)updateGoogleTaskStatus(t.gtaskId,t.done,person);await saveTasks();}};
+window.removeTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t&&isGcalConnected()&&t.gtaskId)deleteGoogleTask(t.gtaskId,person);tasks[person]=(tasks[person]||[]).filter(function(x){return x.id!==id;});await saveTasks();toast('Taak verwijderd');};
 
 window.closeModal=function(id){document.getElementById(id).classList.remove('open');editingEvent=null;editingCell=null;editingDinnerKey=null;};
 document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)closeModal(m.id);});});
