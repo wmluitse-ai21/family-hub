@@ -450,14 +450,15 @@ async function getDefaultTaskList(){
 async function pushTaskToGoogle(text, person){
   if(!isGcalConnected())return null;
   var listId=await getDefaultTaskList();
-  if(!listId)return null;
+  if(!listId){toast('Kon Google takenlijst niet vinden');return null;}
   try{
     var r=await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+listId+'/tasks',{
       method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
       body:JSON.stringify({title:'['+NAMES[person]+'] '+text})
     });
     if(r.ok){var d=await r.json();return d.id;}
-  }catch(e){}
+    else{var err=await r.json();toast('Google Tasks fout: '+(err.error&&err.error.message||r.status));}
+  }catch(e){toast('Google Tasks fout: '+e.message);}
   return null;
 }
 
