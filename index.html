@@ -333,12 +333,11 @@ function initFirebase(){
   // prikbord
   onValue(ref(db,SECRET+'/notices'), function(snap){
     notices = snap.val() || [];
-    renderNotices();
+    if(typeof renderNotices==='function') renderNotices();
   });
-  // verjaardagen
+  // verjaardagen (sectie verwijderd uit UI, data blijft bestaan)
   onValue(ref(db,SECRET+'/birthdays'), function(snap){
     birthdays = snap.val() || [];
-    renderBirthdays();
     render();
   });
   // connection status
