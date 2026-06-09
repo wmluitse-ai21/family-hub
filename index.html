@@ -158,6 +158,13 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
       <div class="sidebar-inner">
         <h3><i class="ti ti-checklist" style="color:var(--muted)"></i> Taken deze week</h3>
         <div id="taskList"></div>
+        <h3 style="margin-top:16px"><i class="ti ti-shopping-cart" style="color:var(--muted)"></i> Boodschappen</h3>
+        <div id="shoppingList"></div>
+        <div style="display:flex;gap:5px;margin-top:8px">
+          <input type="text" id="shopInput" placeholder="bijv. Pindakaas" style="flex:1;padding:6px 8px;border-radius:7px;border:1px solid var(--border);background:var(--bg);font-size:11px;outline:none" onkeydown="if(event.key==='Enter')addShopItem()"/>
+          <button onclick="addShopItem()" style="border:none;background:var(--abel);color:#fff;border-radius:7px;padding:0 10px;cursor:pointer"><i class="ti ti-plus"></i></button>
+        </div>
+        <button onclick="shareToBring()" style="width:100%;margin-top:8px;border:1.5px solid #2bb673;color:#2bb673;background:none;border-radius:8px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px"><i class="ti ti-share"></i> Deel naar Bring!</button>
       </div>
       <div style="padding:10px 12px;border-top:1px solid var(--border)">
         <p style="font-size:10px;color:var(--muted);line-height:1.6">Alles wordt automatisch opgeslagen en gesynchroniseerd tussen al je apparaten.</p>
@@ -251,6 +258,7 @@ var REDIRECT_URI = 'https://wmluitse-ai21.github.io/family-hub/';
 
 // Data — localEvents/dinners/tasks in Firebase; gcalEvents from Google
 var localEvents = {}, gcalEvents = {}, dinners = {}, tasks = {mom:[],dad:[],pepijn:[],abel:[]};
+var shopping = [];
 var gcalToken = null, gcalExpiry = 0;
 var view = 'week', weekOffset = 0, dayOffset = 0, monthOffset = 0;
 var editingEvent = null, editingDinnerKey = null, editingCell = null;
@@ -292,6 +300,11 @@ function initFirebase(){
     tasks = {mom:t.mom||[],dad:t.dad||[],pepijn:t.pepijn||[],abel:t.abel||[]};
     renderTasks();
   });
+  // boodschappen
+  onValue(ref(db,SECRET+'/shopping'), function(snap){
+    shopping = snap.val() || [];
+    renderShopping();
+  });
   // connection status
   onValue(ref(db,'.info/connected'), function(snap){
     fbReady = snap.val()===true;
@@ -307,6 +320,7 @@ function fbSet(path, value){
 async function saveLocalEvents(){ await fbSet('localEvents', localEvents); setSyncLbl('Opgeslagen '+now()); }
 async function saveDinners(){ await fbSet('dinners', dinners); setSyncLbl('Opgeslagen '+now()); }
 async function saveTasks(){ await fbSet('tasks', tasks); setSyncLbl('Opgeslagen '+now()); }
+async function saveShopping(){ await fbSet('shopping', shopping); setSyncLbl('Opgeslagen '+now()); }
 
 function setSyncLbl(t){ document.getElementById('syncLbl').textContent=t; }
 function now(){ return new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}); }
@@ -479,6 +493,44 @@ function renderTasks(){
   for(var pi=0;pi<PERSONS.length;pi++){var p=PERSONS[pi],pt=tasks[p]||[];h+='<div class="task-person"><div class="task-person-hdr"><div style="width:8px;height:8px;border-radius:50%;background:var(--'+p+')"></div><span class="person-color-'+p+'">'+NAMES[p]+'</span></div>';for(var ti=0;ti<pt.length;ti++){var t=pt[ti];h+='<div class="task-item" onclick="toggleTask(\''+p+'\',\''+t.id+'\')"><div class="task-check'+(t.done?' done':'')+'">'+( t.done?'<i class="ti ti-check"></i>':'')+'</div><span class="task-text'+(t.done?' done':'')+'">'+t.text+'</span></div>';}h+='<button class="add-task-btn" onclick="openTaskModal(\''+p+'\')"><i class="ti ti-plus"></i> Toevoegen</button></div>';}
   document.getElementById('taskList').innerHTML=h;
 }
+
+function renderShopping(){
+  var h='';
+  if(!shopping.length){h='<p style="font-size:10px;color:var(--muted);font-style:italic">Nog niets op de lijst</p>';}
+  for(var i=0;i<shopping.length;i++){
+    var it=shopping[i];
+    h+='<div class="task-item" style="justify-content:space-between"><div style="display:flex;align-items:flex-start;gap:5px;flex:1" onclick="toggleShop(\''+it.id+'\')"><div class="task-check'+(it.done?' done':'')+'">'+(it.done?'<i class="ti ti-check"></i>':'')+'</div><span class="task-text'+(it.done?' done':'')+'">'+it.text+'</span></div><i class="ti ti-x" style="font-size:11px;color:var(--muted);cursor:pointer" onclick="removeShop(\''+it.id+'\')"></i></div>';
+  }
+  document.getElementById('shoppingList').innerHTML=h;
+}
+
+window.addShopItem=async function(){
+  var inp=document.getElementById('shopInput');
+  var text=inp.value.trim();
+  if(!text)return;
+  shopping.push({id:uid(),text:text,done:false});
+  inp.value='';
+  await saveShopping();
+};
+window.toggleShop=async function(id){
+  var it=shopping.find(function(x){return x.id===id;});
+  if(it){it.done=!it.done;await saveShopping();}
+};
+window.removeShop=async function(id){
+  shopping=shopping.filter(function(x){return x.id!==id;});
+  await saveShopping();
+};
+window.shareToBring=function(){
+  var items=shopping.filter(function(x){return !x.done;}).map(function(x){return x.text;});
+  if(!items.length){toast('De lijst is leeg');return;}
+  var text='Boodschappenlijst:\n- '+items.join('\n- ');
+  if(navigator.share){
+    navigator.share({title:'Boodschappen',text:text}).catch(function(){});
+  } else {
+    // Fallback: kopieer naar klembord
+    navigator.clipboard.writeText(text).then(function(){toast('Lijst gekopieerd — plak in Bring!');}).catch(function(){toast('Kon niet delen op dit apparaat');});
+  }
+};
 
 function findEvent(evId){
   for(var k in localEvents){for(var i=0;i<localEvents[k].length;i++){if(localEvents[k][i].id===evId)return{ev:localEvents[k][i],store:'local',dateKey:k};}}
