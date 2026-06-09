@@ -189,6 +189,8 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
     <input type="text" id="dinnerTitle" placeholder="bijv. Spaghetti bolognese"/>
     <label>Wie kookt?</label>
     <select id="dinnerCook"><option value="">— niemand toegewezen —</option><option value="mom">Mama</option><option value="dad">Papa</option><option value="pepijn">Pepijn</option><option value="abel">Abel</option></select>
+    <label>Recept link (optioneel)</label>
+    <input type="text" id="dinnerRecipe" placeholder="bijv. https://www.ah.nl/allerhande/..."/>
     <div class="modal-btns">
       <button class="btn-delete" onclick="clearDinner()"><i class="ti ti-trash"></i></button>
       <button class="btn-cancel" onclick="closeModal('dinnerModal')">Annuleren</button>
@@ -436,7 +438,7 @@ function renderWeek(){
     h+='</div>';
   }
   h+='<div class="dinner-row"><div class="dinner-label"><i class="ti ti-soup"></i> Diner</div>';
-  for(var di2=0;di2<dates.length;di2++){var dk=iso(dates[di2]),dn=dinners[dk]||{};h+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">'+(dn.meal?'<span class="meal">'+trunc(dn.meal,16)+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>':'')+'</div>';}
+  for(var di2=0;di2<dates.length;di2++){var dk=iso(dates[di2]),dn=dinners[dk]||{};h+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">'+(dn.meal?'<span class="meal">'+trunc(dn.meal,16)+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" title="Bekijk recept" style="color:var(--abel)"><i class="ti ti-external-link" style="font-size:9px"></i></a>':'')+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>':'')+'</div>';}
   h+='</div></div>';
   document.getElementById('calBody').innerHTML=h;
 }
@@ -449,7 +451,7 @@ function renderDay(){
   for(var pi=0;pi<PERSONS.length;pi++)h+='<div class="day-col-hdr person-color-'+PERSONS[pi]+'" style="background:var(--'+PERSONS[pi]+'-light)">'+NAMES[PERSONS[pi]]+'</div>';
   h+='</div><div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px"><div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center"><i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i><span style="font-size:9px;color:var(--muted);margin-top:2px">Afspraken</span></div>';
   for(var pi2=0;pi2<PERSONS.length;pi2++){var p2=PERSONS[pi2],evs=getEventsForDate(k).filter(function(e){return e.person===p2;});h+='<div class="day-view-cell" onclick="openEventModal(\''+p2+'\',\''+k+'\',event)">';for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];h+='<div class="event-chip bg-'+p2+(ev.fromGcal?' gcal':'')+'" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')">'+(ev.fromGcal?'<i class="ti ti-calendar"></i>':'')+(ev.time?'<strong>'+ev.time+'</strong> ':'')+ev.title+'</div>';}h+='<button class="add-btn" style="opacity:.4"><i class="ti ti-plus"></i></button></div>';}
-  h+='</div><div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none"><div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div><div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal(\''+k+'\')">'+(dn.meal?'<div style="font-size:13px;font-weight:500">'+dn.meal+'</div>':'<div style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</div>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class="ti ti-chef-hat"></i> '+NAMES[dn.cook]+' kookt vanavond</div>':'')+'</div></div></div>';
+  h+='</div><div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none"><div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div><div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal(\''+k+'\')">'+(dn.meal?'<div style="font-size:13px;font-weight:500">'+dn.meal+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--abel);font-size:11px;font-weight:600"><i class="ti ti-external-link"></i> recept</a>':'')+'</div>':'<div style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</div>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class="ti ti-chef-hat"></i> '+NAMES[dn.cook]+' kookt vanavond</div>':'')+'</div></div></div>';
   document.getElementById('calBody').innerHTML=h;
 }
 
@@ -543,8 +545,8 @@ window.deleteEvent=async function(){
   closeModal('eventModal');toast('Afspraak verwijderd');
 };
 
-window.openDinnerModal=function(key){editingDinnerKey=key;var dn=dinners[key]||{};document.getElementById('dinnerTitle').value=dn.meal||'';document.getElementById('dinnerCook').value=dn.cook||'';document.getElementById('dinnerModal').classList.add('open');setTimeout(function(){document.getElementById('dinnerTitle').focus();},100);};
-window.saveDinner=async function(){var meal=document.getElementById('dinnerTitle').value.trim();var cook=document.getElementById('dinnerCook').value;if(meal)dinners[editingDinnerKey]={meal:meal,cook:cook};else delete dinners[editingDinnerKey];closeModal('dinnerModal');await saveDinners();toast('Diner bijgewerkt');};
+window.openDinnerModal=function(key){editingDinnerKey=key;var dn=dinners[key]||{};document.getElementById('dinnerTitle').value=dn.meal||'';document.getElementById('dinnerCook').value=dn.cook||'';document.getElementById('dinnerRecipe').value=dn.recipe||'';document.getElementById('dinnerModal').classList.add('open');setTimeout(function(){document.getElementById('dinnerTitle').focus();},100);};
+window.saveDinner=async function(){var meal=document.getElementById('dinnerTitle').value.trim();var cook=document.getElementById('dinnerCook').value;var recipe=document.getElementById('dinnerRecipe').value.trim();if(recipe&&!/^https?:\/\//i.test(recipe))recipe='https://'+recipe;if(meal)dinners[editingDinnerKey]={meal:meal,cook:cook,recipe:recipe};else delete dinners[editingDinnerKey];closeModal('dinnerModal');await saveDinners();toast('Diner bijgewerkt');};
 window.clearDinner=async function(){delete dinners[editingDinnerKey];closeModal('dinnerModal');await saveDinners();toast('Diner verwijderd');};
 
 window.openTaskModal=function(person){document.getElementById('taskPerson').value=person;document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
