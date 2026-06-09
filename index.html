@@ -179,6 +179,10 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
       <button class="btn-cancel" onclick="closeModal('eventModal')">Annuleren</button>
       <button class="btn-save" onclick="saveEvent()">Opslaan</button>
     </div>
+      <button class="btn-delete" id="evDeleteBtn" onclick="deleteEvent()" style="display:none"><i class="ti ti-trash"></i> Verwijderen</button>
+      <button class="btn-cancel" onclick="closeModal('eventModal')">Annuleren</button>
+      <button class="btn-save" onclick="saveEvent()">Opslaan</button>
+    </div>
   </div>
 </div>
 
@@ -484,7 +488,7 @@ window.openEventModal=function(person,dateKey,e){
   document.getElementById('evPerson').value=person;
   document.getElementById('evTitle').value='';document.getElementById('evTime').value='';
   document.getElementById('evSync').value=isGcalConnected()?'yes':'no';
-  document.getElementById('evSync').parentElement.style.display='block';
+  document.getElementById('evSync').style.display='block';
   document.getElementById('evSyncLabel').style.display='block';
   document.getElementById('evDeleteBtn').style.display='none';
   document.getElementById('gcalBadge').style.display='none';
@@ -501,7 +505,7 @@ window.editEvent=function(e,evId,dateKey){
   document.getElementById('evTime').value=ev.time||'';
   document.getElementById('evDeleteBtn').style.display='block';
   document.getElementById('gcalBadge').style.display=ev.fromGcal?'inline-flex':'none';
-  document.getElementById('evSync').parentElement.style.display='none';
+  document.getElementById('evSync').style.display='none';
   document.getElementById('evSyncLabel').style.display='none';
   document.getElementById('evTitle_hdr').innerHTML='<i class="ti ti-pencil"></i> Afspraak bewerken';
   document.getElementById('eventModal').classList.add('open');
@@ -559,6 +563,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')document.que
 
 function trunc(s,n){return s&&s.length>n?s.slice(0,n-1)+'…':s;}
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2800);}
+
+// Maak token globaal beschikbaar voor debugging
+window.getToken = function(){ return gcalToken; };
 
 // expiry check elke minuut
 setInterval(updateGcalBtn,60000);
