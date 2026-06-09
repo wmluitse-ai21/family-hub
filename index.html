@@ -232,6 +232,7 @@ header{background:var(--card);border-bottom:1px solid var(--border);padding:10px
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBFRYVy1FLTeh4A93hp5V9jdtsfkrXQSxs",
@@ -244,6 +245,7 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
+const auth = getAuth(fbApp);
 // Geheime map — moet overeenkomen met de Firebase regels
 const SECRET = 'luitse-rodenburg-2026';
 
@@ -253,7 +255,7 @@ var CALIDS = {mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'p
 var LOGIN_HINT = 'w.m.luitse@gmail.com';
 var DAYS = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
 var GC_CLIENT_ID = '627008811393-13b2slc834l95793c607ch70l43cvk3t.apps.googleusercontent.com';
-var GC_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+var GC_SCOPE = 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/tasks';
 var REDIRECT_URI = 'https://wmluitse-ai21.github.io/family-hub/';
 
 // Data — localEvents/dinners/tasks in Firebase; gcalEvents from Google
@@ -340,22 +342,49 @@ function updateGcalBtn(){
   else if(gcalToken){ btn.classList.remove('connected'); lbl.textContent='Opnieuw inloggen'; ban.style.display='block'; }
   else{ btn.classList.remove('connected'); lbl.textContent='Google Agenda'; ban.style.display='none'; }
 }
+
+// Firebase Authentication met Google
+var googleProvider = new GoogleAuthProvider();
+googleProvider.addScope('https://www.googleapis.com/auth/calendar.events');
+googleProvider.addScope('https://www.googleapis.com/auth/tasks');
+googleProvider.setCustomParameters({ login_hint: LOGIN_HINT, prompt: 'consent' });
+
 window.connectGoogle = function(){
-  sessionStorage.setItem('gcal_pending','1');
-  var p=new URLSearchParams({client_id:GC_CLIENT_ID,redirect_uri:REDIRECT_URI,response_type:'token',scope:GC_SCOPE,prompt:'consent',login_hint:LOGIN_HINT});
-  window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
+  signInWithPopup(auth, googleProvider).then(function(result){
+    var cred = GoogleAuthProvider.credentialFromResult(result);
+    if(cred && cred.accessToken){
+      gcalToken = cred.accessToken;
+      gcalExpiry = Date.now() + 3600*1000;
+      saveToken();
+      updateGcalBtn();
+      toast('✅ Google gekoppeld!');
+      fetchAllGcalEvents();
+      fetchGoogleTasks();
+    }
+  }).catch(function(e){
+    toast('Inloggen mislukt: ' + (e.message||e.code));
+  });
 };
-function handleOAuthCallback(){
-  var hash=window.location.hash;
-  if(!hash||!sessionStorage.getItem('gcal_pending'))return;
-  var p=new URLSearchParams(hash.replace('#',''));
-  var token=p.get('access_token');if(!token)return;
-  sessionStorage.removeItem('gcal_pending');
-  gcalToken=token;gcalExpiry=Date.now()+(parseInt(p.get('expires_in')||3600)*1000);
-  window.history.replaceState(null,null,window.location.pathname);
-  saveToken();updateGcalBtn();toast('✅ Google Agenda gekoppeld!');
-  fetchAllGcalEvents();
+
+// Firebase houdt de sessie automatisch in stand; ververs token bij terugkeer
+function refreshTokenSilently(){
+  var user = auth.currentUser;
+  if(!user) return Promise.resolve(false);
+  // Firebase ID token verversen (houdt sessie levend)
+  return user.getIdToken(true).then(function(){
+    return true;
+  }).catch(function(){ return false; });
 }
+
+onAuthStateChanged(auth, function(user){
+  if(user){
+    // Sessie actief — als gcalToken verlopen is, vraag om herkoppeling
+    if(!isGcalConnected()){
+      // Token kan verlopen zijn; toon herkoppel-optie maar data blijft bewaard
+      updateGcalBtn();
+    }
+  }
+});
 
 async function fetchAllGcalEvents(){
   if(!isGcalConnected())return;
@@ -425,6 +454,63 @@ async function deleteGcalEvent(ev){
   if(!isGcalConnected()||!ev.gcalId)return;
   var calId=CALIDS[ev.person];
   try{await fetch('https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(calId)+'/events/'+ev.gcalId,{method:'DELETE',headers:{'Authorization':'Bearer '+gcalToken}});}catch(e){}
+}
+
+// ── Google Tasks ───────────────────────────────────────────────────────────
+// Haalt de standaard takenlijst op en voegt toe / werkt bij
+var googleTaskListId = null;
+
+async function getDefaultTaskList(){
+  if(googleTaskListId) return googleTaskListId;
+  if(!isGcalConnected()) return null;
+  try{
+    var r=await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists',{headers:{'Authorization':'Bearer '+gcalToken}});
+    if(!r.ok)return null;
+    var d=await r.json();
+    if(d.items&&d.items.length){googleTaskListId=d.items[0].id;return googleTaskListId;}
+  }catch(e){}
+  return null;
+}
+
+// Stuur een nieuwe taak naar Google Tasks, geef Google task-id terug
+async function pushTaskToGoogle(text, person){
+  if(!isGcalConnected())return null;
+  var listId=await getDefaultTaskList();
+  if(!listId)return null;
+  try{
+    var r=await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+listId+'/tasks',{
+      method:'POST',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
+      body:JSON.stringify({title:'['+NAMES[person]+'] '+text})
+    });
+    if(r.ok){var d=await r.json();return d.id;}
+  }catch(e){}
+  return null;
+}
+
+// Markeer een Google taak als voltooid/onvoltooid
+async function updateGoogleTaskStatus(gtaskId, done){
+  if(!isGcalConnected()||!gtaskId||!googleTaskListId)return;
+  try{
+    await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+googleTaskListId+'/tasks/'+gtaskId,{
+      method:'PATCH',headers:{'Authorization':'Bearer '+gcalToken,'Content-Type':'application/json'},
+      body:JSON.stringify({status:done?'completed':'needsAction'})
+    });
+  }catch(e){}
+}
+
+// Verwijder een Google taak
+async function deleteGoogleTask(gtaskId){
+  if(!isGcalConnected()||!gtaskId||!googleTaskListId)return;
+  try{
+    await fetch('https://tasks.googleapis.com/tasks/v1/lists/'+googleTaskListId+'/tasks/'+gtaskId,{
+      method:'DELETE',headers:{'Authorization':'Bearer '+gcalToken}
+    });
+  }catch(e){}
+}
+
+// Laad takenlijst-id na koppeling (voor latere acties)
+async function fetchGoogleTasks(){
+  await getDefaultTaskList();
 }
 
 // ── Datum helpers ──
@@ -610,8 +696,8 @@ window.saveDinner=async function(){var meal=document.getElementById('dinnerTitle
 window.clearDinner=async function(){delete dinners[editingDinnerKey];closeModal('dinnerModal');await saveDinners();toast('Diner verwijderd');};
 
 window.openTaskModal=function(person){document.getElementById('taskPerson').value=person;document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
-window.saveTask=async function(){var person=document.getElementById('taskPerson').value;var text=document.getElementById('taskTitle').value.trim();if(!text)return;if(!tasks[person])tasks[person]=[];tasks[person].push({id:uid(),text:text,done:false});closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');};
-window.toggleTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t){t.done=!t.done;await saveTasks();}};
+window.saveTask=async function(){var person=document.getElementById('taskPerson').value;var text=document.getElementById('taskTitle').value.trim();if(!text)return;if(!tasks[person])tasks[person]=[];var newTask={id:uid(),text:text,done:false};if(isGcalConnected()){var gid=await pushTaskToGoogle(text,person);if(gid){newTask.gtaskId=gid;toast('Taak ook in Google Tasks gezet');}}tasks[person].push(newTask);closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');};
+window.toggleTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t){t.done=!t.done;if(isGcalConnected()&&t.gtaskId)updateGoogleTaskStatus(t.gtaskId,t.done);await saveTasks();}};
 
 window.closeModal=function(id){document.getElementById(id).classList.remove('open');editingEvent=null;editingCell=null;editingDinnerKey=null;};
 document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)closeModal(m.id);});});
@@ -651,10 +737,9 @@ setInterval(function(){if(isGcalConnected())fetchAllGcalEvents();},600000);
 requestWakeLock();
 loadToken();
 updateGcalBtn();
-handleOAuthCallback();
 initFirebase();
 render();
-if(isGcalConnected())fetchAllGcalEvents();
+if(isGcalConnected()){fetchAllGcalEvents();fetchGoogleTasks();}
 </script>
 </body>
 </html>
