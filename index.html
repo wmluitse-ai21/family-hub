@@ -1259,16 +1259,53 @@ window.openPlaylist = async function(id, uri, name){
   el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Laden…</div>';
   try{
     var r=await fetch('https://api.spotify.com/v1/playlists/'+id+'/tracks?limit=10',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    if(!r.ok){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Kon playlist niet laden (code '+r.status+')</div>';return;}
     var d=await r.json();
-    var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="panel-section-title" style="margin:0">'+name+'</div><button onclick="playPlaylist(\''+uri+'\')" class="hdr-btn" style="font-size:10px;color:#1db954;border-color:#1db954"><i class="ti ti-player-play-filled"></i> Speel alles</button></div>';
-    (d.items||[]).forEach(function(it){
-      var t=it.track;if(!t)return;
+    var items=(d.items||[]).filter(function(it){return it&&it.track;});
+    var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px;flex-wrap:wrap">'+
+        '<div class="panel-section-title" style="margin:0;flex:1;min-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+name+'</div>'+
+        '<button onclick="playPlaylist(\''+uri+'\')" class="hdr-btn" style="font-size:10px;color:#1db954;border-color:#1db954"><i class="ti ti-player-play-filled"></i> Speel</button>'+
+        '<button onclick="shufflePlaylist(\''+uri+'\')" class="hdr-btn" style="font-size:10px"><i class="ti ti-arrows-shuffle"></i> Shuffle</button>'+
+        '<button onclick="followPlaylist(\''+id+'\')" class="hdr-btn" style="font-size:10px" title="Opslaan in jouw bibliotheek"><i class="ti ti-heart"></i> Opslaan</button>'+
+      '</div>';
+    if(!items.length){h+='<div style="font-size:11px;color:var(--muted);padding:8px">Geen nummers gevonden</div>';}
+    items.forEach(function(it){
+      var t=it.track;
       var cover=t.album&&t.album.images&&t.album.images[t.album.images.length-1]?t.album.images[t.album.images.length-1].url:'';
       var artists=(t.artists||[]).map(function(a){return a.name;}).join(', ');
       h+='<div class="track-row" onclick="playTrack(\''+t.uri+'\')">'+(cover?'<img src="'+cover+'"/>':'')+'<div style="min-width:0;flex:1"><div class="t-name">'+t.name+'</div><div class="t-artist">'+artists+'</div></div></div>';
     });
     el.innerHTML=h;
   }catch(e){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Kon playlist niet laden</div>';}
+};
+
+// Shuffle een playlist: zet shuffle aan en speel af
+window.shufflePlaylist = async function(uri){
+  if(!isSpotifyConnected())return;
+  var deviceParam = spotifyDeviceId ? ('?device_id='+spotifyDeviceId) : '';
+  try{
+    await fetch('https://api.spotify.com/v1/me/player/shuffle?state=true'+(spotifyDeviceId?('&device_id='+spotifyDeviceId):''),{method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken}});
+    var r=await fetch('https://api.spotify.com/v1/me/player/play'+deviceParam,{
+      method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken,'Content-Type':'application/json'},
+      body:JSON.stringify({context_uri:uri})
+    });
+    if(r.status===404){ toast('Geen actieve speler — tik eerst op "Speel op tablet"'); return; }
+    toast('Shuffle aan 🔀');
+    setTimeout(updateNowPlaying,700);
+  }catch(e){}
+};
+
+// Playlist volgen/opslaan in je eigen bibliotheek
+window.followPlaylist = async function(id){
+  if(!isSpotifyConnected())return;
+  try{
+    var r=await fetch('https://api.spotify.com/v1/playlists/'+id+'/followers',{
+      method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken,'Content-Type':'application/json'},
+      body:JSON.stringify({public:false})
+    });
+    if(r.ok){ toast('Playlist opgeslagen in jouw bibliotheek ❤️'); fetchPlaylists(); }
+    else { toast('Opslaan mislukt (code '+r.status+')'); }
+  }catch(e){ toast('Opslaan mislukt'); }
 };
 
 // Live zoeken terwijl je typt (met korte vertraging)
