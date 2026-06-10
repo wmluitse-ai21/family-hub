@@ -115,6 +115,11 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 .task-text.done{text-decoration:line-through;color:var(--muted2)}
 .add-task-btn{font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;padding:3px 4px;display:flex;align-items:center;gap:3px;transition:color .15s}
 .add-task-btn:hover{color:var(--text)}
+.task-chip{display:flex;align-items:center;gap:6px;padding:5px 13px 5px 5px;border-radius:22px;font-size:12px;font-weight:600;border:1px solid var(--border2);cursor:pointer;color:var(--muted);background:var(--bg);transition:all .15s;user-select:none}
+.task-chip:hover{border-color:var(--muted)}
+.task-chip.on{color:var(--text);border-color:var(--accent);background:var(--card2)}
+.task-chip .chip-check{margin-left:1px;font-size:13px;color:var(--accent);opacity:0;transition:opacity .15s}
+.task-chip.on .chip-check{opacity:1}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--card);border-radius:18px;padding:22px;width:340px;border:1px solid var(--border2);box-shadow:0 12px 48px rgba(0,0,0,.5)}
@@ -268,8 +273,8 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 <div class="modal-overlay" id="taskModal">
   <div class="modal">
     <h2><i class="ti ti-circle-plus"></i> Taak toevoegen</h2>
-    <label>Persoon</label>
-    <select id="taskPerson"><option value="mom">Mama</option><option value="dad">Papa</option><option value="pepijn">Pepijn</option><option value="abel">Abel</option></select>
+    <label>Voor wie? (kies één of meer)</label>
+    <div id="taskPersonChips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px"></div>
     <label>Taak</label>
     <input type="text" id="taskTitle" placeholder="bijv. Boodschappen doen"/>
     <div class="modal-btns">
@@ -924,8 +929,25 @@ window.openDinnerModal=function(key){editingDinnerKey=key;var dn=dinners[key]||{
 window.saveDinner=async function(){var meal=document.getElementById('dinnerTitle').value.trim();var cook=document.getElementById('dinnerCook').value;var recipe=document.getElementById('dinnerRecipe').value.trim();if(recipe&&!/^https?:\/\//i.test(recipe))recipe='https://'+recipe;if(meal)dinners[editingDinnerKey]={meal:meal,cook:cook,recipe:recipe};else delete dinners[editingDinnerKey];closeModal('dinnerModal');await saveDinners();toast('Diner bijgewerkt');};
 window.clearDinner=async function(){delete dinners[editingDinnerKey];closeModal('dinnerModal');await saveDinners();toast('Diner verwijderd');};
 
-window.openTaskModal=function(person){document.getElementById('taskPerson').value=person;document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
-window.saveTask=async function(){var person=document.getElementById('taskPerson').value;var text=document.getElementById('taskTitle').value.trim();if(!text)return;if(!tasks[person])tasks[person]=[];var newTask={id:uid(),text:text,done:false};if(isGcalConnected()){var gid=await pushTaskToGoogle(text,person);if(gid){newTask.gtaskId=gid;toast('Taak ook in Google Tasks gezet');}}tasks[person].push(newTask);closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');};
+var taskSelected = {};
+function renderTaskChips(){
+  var el=document.getElementById('taskPersonChips');
+  if(!el)return;
+  var h='';
+  for(var i=0;i<PERSONS.length;i++){
+    var p=PERSONS[i];
+    var on=!!taskSelected[p];
+    h+='<div class="task-chip'+(on?' on':'')+'" onclick="toggleTaskPerson(\''+p+'\')">'+
+        '<span class="avatar-dot" style="background:var(--'+p+'-dark);width:20px;height:20px;font-size:9px">'+NAMES[p].charAt(0)+'</span>'+
+        NAMES[p]+
+        '<i class="ti ti-check chip-check"></i>'+
+      '</div>';
+  }
+  el.innerHTML=h;
+}
+window.toggleTaskPerson=function(p){ taskSelected[p]=!taskSelected[p]; renderTaskChips(); };
+window.openTaskModal=function(person){taskSelected={};if(person)taskSelected[person]=true;renderTaskChips();document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
+window.saveTask=async function(){var text=document.getElementById('taskTitle').value.trim();if(!text)return;var persons=PERSONS.filter(function(p){return taskSelected[p];});if(!persons.length){toast('Kies minstens één persoon');return;}for(var i=0;i<persons.length;i++){var person=persons[i];if(!tasks[person])tasks[person]=[];var newTask={id:uid(),text:text,done:false};if(isGcalConnected()){var gid=await pushTaskToGoogle(text,person);if(gid){newTask.gtaskId=gid;}}tasks[person].push(newTask);}closeModal('taskModal');await saveTasks();toast(persons.length>1?('Taak toegevoegd voor '+persons.length+' personen'):'Taak toegevoegd');};
 window.toggleTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t){t.done=!t.done;if(isGcalConnected()&&t.gtaskId)updateGoogleTaskStatus(t.gtaskId,t.done,person);await saveTasks();}};
 window.removeTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t&&isGcalConnected()&&t.gtaskId)deleteGoogleTask(t.gtaskId,person);tasks[person]=(tasks[person]||[]).filter(function(x){return x.id!==id;});await saveTasks();toast('Taak verwijderd');};
 
