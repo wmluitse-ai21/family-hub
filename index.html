@@ -1186,7 +1186,7 @@ var spotifyRecent = [];
 async function fetchPlaylists(){
   if(!isSpotifyConnected())return;
   try{
-    var r=await fetch('https://api.spotify.com/v1/me/playlists?limit=30',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    var r=await fetch('https://api.spotify.com/v1/me/playlists?limit=10',{headers:{'Authorization':'Bearer '+spotifyToken}});
     if(!r.ok)return;
     var d=await r.json();
     playlists=d.items||[];
@@ -1228,7 +1228,7 @@ window.openPlaylist = async function(id, uri, name){
   document.getElementById('searchResults').innerHTML='';
   el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Laden…</div>';
   try{
-    var r=await fetch('https://api.spotify.com/v1/playlists/'+id+'/tracks?limit=50',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    var r=await fetch('https://api.spotify.com/v1/playlists/'+id+'/tracks?limit=10',{headers:{'Authorization':'Bearer '+spotifyToken}});
     var d=await r.json();
     var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="panel-section-title" style="margin:0">'+name+'</div><button onclick="playPlaylist(\''+uri+'\')" class="hdr-btn" style="font-size:10px;color:#1db954;border-color:#1db954"><i class="ti ti-player-play-filled"></i> Speel alles</button></div>';
     (d.items||[]).forEach(function(it){
@@ -1249,7 +1249,7 @@ window.doSpotifySearch = async function(){
   if(!q){el.innerHTML='';return;}
   el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Zoeken…</div>';
   try{
-    var url='https://api.spotify.com/v1/search?q='+encodeURIComponent(q)+'&type=track&limit=20';
+    var url='https://api.spotify.com/v1/search?q='+encodeURIComponent(q)+'&type=track&limit=10';
     var r=await fetch(url,{headers:{'Authorization':'Bearer '+spotifyToken}});
     if(r.status===429){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Even te druk — wacht een halve minuut en probeer opnieuw.</div>';return;}
     if(r.status===401){await refreshSpotifyToken();el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Sessie vernieuwd — zoek nogmaals.</div>';return;}
