@@ -411,6 +411,7 @@ function initFirebase(){
   // tasks
   onValue(ref(db,SECRET+'/tasks'), function(snap){
     tasks = normalizeTasks(snap.val());
+    if(pruneOldDoneTasks()) saveTasks();
     renderTasks();
   });
   // boodschappen
@@ -867,6 +868,21 @@ function normalizeTasks(raw){
   return order.map(function(k){return byText[k];});
 }
 
+// Voltooide taken van een eerdere dag verdwijnen automatisch van het scherm.
+// Vandaag afgevinkte taken blijven staan; pas de volgende dag worden ze opgeruimd.
+// Geeft true terug als er iets is gewijzigd (zodat we dan opslaan).
+function pruneOldDoneTasks(){
+  var today=iso(new Date());
+  var changed=false;
+  // Oudere voltooide taken zonder datum krijgen alsnog de datum van vandaag,
+  // zodat ze één dag later netjes worden opgeruimd in plaats van te blijven hangen.
+  tasks.forEach(function(t){ if(t.done && !t.doneDate){ t.doneDate=today; changed=true; } });
+  var before=tasks.length;
+  tasks=tasks.filter(function(t){ return !(t.done && t.doneDate && t.doneDate < today); });
+  if(tasks.length!==before) changed=true;
+  return changed;
+}
+
 function renderTasks(){
   var el=document.getElementById('taskList');
   if(!el)return;
@@ -1034,7 +1050,7 @@ function renderTaskChips(){
 window.toggleTaskPerson=function(p){ taskSelected[p]=!taskSelected[p]; renderTaskChips(); };
 window.openTaskModal=function(person){taskSelected={};var pre=person||(taskFilter&&taskFilter!=='all'?taskFilter:null);if(pre)taskSelected[pre]=true;renderTaskChips();document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
 window.saveTask=async function(){var text=document.getElementById('taskTitle').value.trim();if(!text)return;var persons=PERSONS.filter(function(p){return taskSelected[p];});if(!persons.length){toast('Kies minstens één persoon');return;}var newTask={id:uid(),text:text,done:false,assignees:persons,gtaskIds:{}};if(isGcalConnected()){for(var i=0;i<persons.length;i++){var gid=await pushTaskToGoogle(text,persons[i]);if(gid)newTask.gtaskIds[persons[i]]=gid;}}tasks.push(newTask);closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');};
-window.toggleTask=async function(id){var t=tasks.find(function(x){return x.id===id;});if(!t)return;t.done=!t.done;if(isGcalConnected()&&t.gtaskIds){for(var p in t.gtaskIds){updateGoogleTaskStatus(t.gtaskIds[p],t.done,p);}}await saveTasks();};
+window.toggleTask=async function(id){var t=tasks.find(function(x){return x.id===id;});if(!t)return;t.done=!t.done;t.doneDate=t.done?iso(new Date()):null;if(isGcalConnected()&&t.gtaskIds){for(var p in t.gtaskIds){updateGoogleTaskStatus(t.gtaskIds[p],t.done,p);}}await saveTasks();};
 window.removeTask=async function(id){var t=tasks.find(function(x){return x.id===id;});if(t&&isGcalConnected()&&t.gtaskIds){for(var p in t.gtaskIds){deleteGoogleTask(t.gtaskIds[p],p);}}tasks=tasks.filter(function(x){return x.id!==id;});await saveTasks();toast('Taak verwijderd');};
 
 // Verjaardagen die op een bepaalde datum vallen
@@ -1085,6 +1101,9 @@ setInterval(function(){ updateGcalBtn(); checkTokenFreshness(); },60000);
 document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') checkTokenFreshness(); });
 // gcal refresh elke 10 min
 setInterval(function(){if(isGcalConnected())fetchAllGcalEvents();},600000);
+// voltooide taken van eerdere dagen elke 15 min opruimen (vangt de middernacht-overgang af)
+setInterval(function(){ if(pruneOldDoneTasks()){ saveTasks(); renderTasks(); } },15*60*1000);
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && pruneOldDoneTasks()){ saveTasks(); renderTasks(); } });
 
 // ── Spotify ────────────────────────────────────────────────────────────────
 var SPOTIFY_CLIENT_ID = '56768bd57da84a108b64c4f28a62b4c9';
