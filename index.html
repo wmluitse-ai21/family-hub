@@ -128,6 +128,22 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 .btn-delete{padding:7px 16px;border-radius:9px;border:none;background:#3a1f24;color:#e88;cursor:pointer;font-size:12px;margin-right:auto;transition:opacity .15s}
 .btn-delete:hover{opacity:.85}
 .gcal-badge{font-size:9px;background:var(--dad-light);color:var(--dad-dark);border-radius:9px;padding:3px 8px;margin-left:auto}
+.music-panel{background:var(--card);border-radius:20px;border:1px solid var(--border2);box-shadow:0 16px 60px rgba(0,0,0,.6);width:860px;max-width:94vw;height:80vh;max-height:640px;display:flex;flex-direction:column;overflow:hidden}
+.music-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.music-panel-hdr h2{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.music-panel-body{flex:1;display:grid;grid-template-columns:1fr 300px;overflow:hidden}
+.music-col{padding:18px;overflow-y:auto}
+.track-row{display:flex;gap:10px;align-items:center;padding:7px;border-radius:9px;cursor:pointer;transition:background .12s}
+.track-row:hover{background:var(--card2)}
+.track-row img{width:40px;height:40px;border-radius:6px;flex-shrink:0;object-fit:cover}
+.track-row .t-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-row .t-artist{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device-row{display:flex;gap:9px;align-items:center;padding:9px 11px;border-radius:10px;cursor:pointer;border:1px solid var(--border);margin-bottom:7px;transition:all .12s}
+.device-row:hover{border-color:var(--border2);background:var(--card2)}
+.device-row.active{border-color:#1db954;background:rgba(29,185,84,.08)}
+.device-row.active .d-name{color:#1db954}
+.panel-section-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:4px 0 10px}
+@media (max-width:760px){.music-panel-body{grid-template-columns:1fr}.music-col:last-child{border-left:none;border-top:1px solid var(--border)}}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--card2);color:var(--text);padding:11px 20px;border-radius:22px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;border:1px solid var(--border2);box-shadow:0 6px 24px rgba(0,0,0,.4)}
 .toast.show{opacity:1}
 .person-color-mom{color:var(--mom-dark)}.bg-mom{background:var(--mom-light);color:var(--mom-dark)}
@@ -172,7 +188,13 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
   <div class="main">
     <div class="calendar-area">
       <div id="calBody"></div>
-      <div class="bottom-cards">
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-inner">
+        <div class="side-card">
+          <h3><i class="ti ti-checklist"></i> Taken deze week</h3>
+          <div id="taskList"></div>
+        </div>
         <div class="side-card">
           <h3><i class="ti ti-shopping-cart"></i> Boodschappen</h3>
           <div id="shoppingList"></div>
@@ -182,22 +204,10 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
           </div>
         </div>
         <div class="side-card">
-          <h3><i class="ti ti-brand-spotify" style="color:#1db954"></i> Muziek</h3>
+          <h3><i class="ti ti-brand-spotify" style="color:#1db954"></i> Muziek <span id="spotifyUser" style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:auto;font-size:9px;color:var(--muted)"></span></h3>
           <div id="spotifyContent">
             <button onclick="connectSpotify()" style="width:100%;border:1.5px solid #1db954;color:#1db954;background:none;border-radius:10px;padding:9px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-brand-spotify"></i> Koppel Spotify</button>
           </div>
-          <div id="playlistSection" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
-            <div style="font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Playlists</div>
-            <div id="playlistList"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="sidebar">
-      <div class="sidebar-inner">
-        <div class="side-card">
-          <h3><i class="ti ti-checklist"></i> Taken deze week</h3>
-          <div id="taskList"></div>
         </div>
       </div>
       <div style="padding:12px 16px;border-top:1px solid var(--border)">
@@ -279,6 +289,35 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Muziekpaneel overlay -->
+<div class="modal-overlay" id="musicPanel">
+  <div class="music-panel">
+    <div class="music-panel-hdr">
+      <h2><i class="ti ti-brand-spotify" style="color:#1db954"></i> Muziek <span id="musicPanelUser" style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="switchSpotifyAccount()" class="hdr-btn" style="font-size:10px"><i class="ti ti-switch-horizontal"></i> Wissel account</button>
+        <i class="ti ti-x" style="font-size:20px;cursor:pointer;color:var(--muted)" onclick="closeModal('musicPanel')"></i>
+      </div>
+    </div>
+    <div class="music-panel-body">
+      <div class="music-col">
+        <div style="position:relative;margin-bottom:14px">
+          <i class="ti ti-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px"></i>
+          <input type="text" id="musicSearch" placeholder="Zoek nummers, artiesten, albums…" style="width:100%;padding:10px 12px 10px 34px;border-radius:11px;border:1px solid var(--border2);background:var(--bg);font-size:13px;color:var(--text);outline:none" onkeydown="if(event.key==='Enter')doSpotifySearch()"/>
+        </div>
+        <div id="searchResults"></div>
+        <div id="playlistTracks"></div>
+      </div>
+      <div class="music-col" style="border-left:1px solid var(--border);padding-left:18px">
+        <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px"><i class="ti ti-device-speaker" style="margin-right:4px"></i> Afspelen op</div>
+        <div id="deviceList" style="margin-bottom:18px"></div>
+        <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px"><i class="ti ti-playlist" style="margin-right:4px"></i> Jouw playlists</div>
+        <div id="panelPlaylists"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -949,10 +988,33 @@ window.connectSpotify = async function(){
     redirect_uri:REDIRECT_URI,
     scope:SPOTIFY_SCOPE,
     code_challenge_method:'S256',
-    code_challenge:challenge
+    code_challenge:challenge,
+    show_dialog:'true'
   });
   window.location.href='https://accounts.spotify.com/authorize?'+p.toString();
 };
+
+// Wissel account: uitloggen + opnieuw inloggen (toont accountkeuze)
+window.switchSpotifyAccount = function(){
+  // wis huidige tokens zodat een ander account kan inloggen
+  spotifyToken=null;spotifyExpiry=0;
+  localStorage.removeItem('fh-spotify');
+  localStorage.removeItem('fh-spotify-refresh');
+  if(spotifyPlayer){try{spotifyPlayer.disconnect();}catch(e){}spotifyPlayer=null;spotifyDeviceId=null;}
+  connectSpotify();
+};
+
+// Haal de naam van het ingelogde account op
+async function fetchSpotifyUser(){
+  if(!isSpotifyConnected())return;
+  try{
+    var r=await fetch('https://api.spotify.com/v1/me',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    if(!r.ok)return;
+    var d=await r.json();
+    var el=document.getElementById('spotifyUser');
+    if(el&&d.display_name)el.textContent=d.display_name;
+  }catch(e){}
+}
 
 async function handleSpotifyCallback(){
   var params=new URLSearchParams(window.location.search);
@@ -979,6 +1041,9 @@ async function handleSpotifyCallback(){
       if(d.refresh_token)localStorage.setItem('fh-spotify-refresh',d.refresh_token);
       saveSpotifyToken();
       toast('✅ Spotify gekoppeld!');
+      fetchSpotifyUser();
+      fetchPlaylists();
+      initWebPlayer();
     }
   }catch(e){toast('Spotify koppelen mislukt');}
   window.history.replaceState(null,null,window.location.pathname);
@@ -1026,6 +1091,7 @@ async function updateNowPlaying(){
 }
 
 function renderSpotify(data, recent){
+  spotifyRecent = recent || spotifyRecent;
   var el=document.getElementById('spotifyContent');
   if(!el)return;
   var h='';
@@ -1044,25 +1110,8 @@ function renderSpotify(data, recent){
     h+='<p style="font-size:10px;color:var(--muted);font-style:italic;text-align:center;padding:6px">Er speelt nu niets</p>'+
       '<div style="display:flex;justify-content:center;gap:18px;margin-top:2px">'+spotifyControls(false)+'</div>';
   }
-  // Recent afgespeeld
-  if(recent&&recent.length){
-    h+='<div style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px"><div style="font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Recent afgespeeld</div>';
-    var seen={};
-    for(var i=0;i<recent.length;i++){
-      var rt=recent[i].track;
-      if(!rt||seen[rt.id])continue;
-      seen[rt.id]=true;
-      var rcover=rt.album&&rt.album.images&&rt.album.images[rt.album.images.length-1]?rt.album.images[rt.album.images.length-1].url:'';
-      var rartists=(rt.artists||[]).map(function(a){return a.name;}).join(', ');
-      h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;cursor:pointer" onclick="playTrack(\''+rt.uri+'\')">'+
-          (rcover?'<img src="'+rcover+'" style="width:30px;height:30px;border-radius:5px;flex-shrink:0;object-fit:cover"/>':'')+
-          '<div style="min-width:0;flex:1"><div style="font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+rt.name+'</div><div style="font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+rartists+'</div></div>'+
-        '</div>';
-    }
-    h+='</div>';
-  }
-  // Speel op tablet knop
-  h+='<button onclick="playOnTablet()" style="width:100%;margin-top:10px;border:1px solid var(--border2);color:var(--text);background:var(--bg);border-radius:9px;padding:7px;font-size:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px"><i class="ti ti-device-tablet"></i> Speel op deze tablet</button>';
+  // Open muziekpaneel
+  h+='<button onclick="openMusicPanel()" style="width:100%;margin-top:12px;border:none;background:#1db954;color:#fff;border-radius:10px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-music"></i> Open muziek</button>';
   el.innerHTML=h;
 }
 
@@ -1089,6 +1138,7 @@ window.spotifyPrev=async function(){
 function startSpotify(){
   if(isSpotifyConnected()||localStorage.getItem('fh-spotify-refresh')){
     updateNowPlaying();
+    fetchSpotifyUser();
     if(spotifyPollTimer)clearInterval(spotifyPollTimer);
     spotifyPollTimer=setInterval(updateNowPlaying,10000); // elke 10s verversen
     initWebPlayer();
@@ -1131,34 +1181,124 @@ window.playOnTablet = async function(){
 
 // ── Playlists ──────────────────────────────────────────────────────────────
 var playlists = [];
+var spotifyRecent = [];
 async function fetchPlaylists(){
   if(!isSpotifyConnected())return;
   try{
-    var r=await fetch('https://api.spotify.com/v1/me/playlists?limit=20',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    var r=await fetch('https://api.spotify.com/v1/me/playlists?limit=30',{headers:{'Authorization':'Bearer '+spotifyToken}});
     if(!r.ok)return;
     var d=await r.json();
     playlists=d.items||[];
-    renderPlaylists();
+    renderPanelPlaylists();
   }catch(e){}
 }
-function renderPlaylists(){
-  var el=document.getElementById('playlistList');
+
+window.openMusicPanel = function(){
+  document.getElementById('musicPanel').classList.add('open');
+  var u=document.getElementById('spotifyUser');
+  if(u)document.getElementById('musicPanelUser').textContent=u.textContent;
+  renderPanelPlaylists();
+  renderRecentInPanel();
+  fetchDevices();
+  document.getElementById('searchResults').innerHTML='';
+  document.getElementById('playlistTracks').innerHTML='';
+};
+
+function renderPanelPlaylists(){
+  var el=document.getElementById('panelPlaylists');
   if(!el)return;
-  var section=document.getElementById('playlistSection');
-  if(!playlists.length){if(section)section.style.display='none';return;}
-  if(section)section.style.display='block';
+  if(!playlists.length){el.innerHTML='<p style="font-size:11px;color:var(--muted);font-style:italic">Geen playlists</p>';return;}
   var h='';
   for(var i=0;i<playlists.length;i++){
     var pl=playlists[i];
     var cover=pl.images&&pl.images[0]?pl.images[0].url:'';
-    h+='<div style="display:flex;gap:8px;align-items:center;padding:5px;border-radius:8px;cursor:pointer;transition:background .12s" onmouseover="this.style.background=\'var(--card2)\'" onmouseout="this.style.background=\'none\'" onclick="playPlaylist(\''+pl.uri+'\')">'+
-        (cover?'<img src="'+cover+'" style="width:32px;height:32px;border-radius:5px;flex-shrink:0;object-fit:cover"/>':'<div style="width:32px;height:32px;border-radius:5px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-playlist" style="font-size:14px;color:var(--muted)"></i></div>')+
-        '<span style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">'+pl.name+'</span>'+
-        '<i class="ti ti-player-play-filled" style="font-size:13px;color:#1db954;flex-shrink:0"></i>'+
+    h+='<div class="track-row" onclick="openPlaylist(\''+pl.id+'\',\''+pl.uri+'\',\''+(pl.name||'').replace(/'/g,"")+'\')">'+
+        (cover?'<img src="'+cover+'"/>':'<div style="width:40px;height:40px;border-radius:6px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-playlist" style="color:var(--muted)"></i></div>')+
+        '<div style="min-width:0;flex:1"><div class="t-name">'+pl.name+'</div><div class="t-artist">'+(pl.tracks?pl.tracks.total+' nummers':'')+'</div></div>'+
+        '<i class="ti ti-player-play-filled" style="font-size:14px;color:#1db954;flex-shrink:0" onclick="event.stopPropagation();playPlaylist(\''+pl.uri+'\')"></i>'+
       '</div>';
   }
   el.innerHTML=h;
 }
+
+// Bekijk de nummers van een playlist
+window.openPlaylist = async function(id, uri, name){
+  var el=document.getElementById('playlistTracks');
+  document.getElementById('searchResults').innerHTML='';
+  el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Laden…</div>';
+  try{
+    var r=await fetch('https://api.spotify.com/v1/playlists/'+id+'/tracks?limit=50',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    var d=await r.json();
+    var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div class="panel-section-title" style="margin:0">'+name+'</div><button onclick="playPlaylist(\''+uri+'\')" class="hdr-btn" style="font-size:10px;color:#1db954;border-color:#1db954"><i class="ti ti-player-play-filled"></i> Speel alles</button></div>';
+    (d.items||[]).forEach(function(it){
+      var t=it.track;if(!t)return;
+      var cover=t.album&&t.album.images&&t.album.images[t.album.images.length-1]?t.album.images[t.album.images.length-1].url:'';
+      var artists=(t.artists||[]).map(function(a){return a.name;}).join(', ');
+      h+='<div class="track-row" onclick="playTrack(\''+t.uri+'\')">'+(cover?'<img src="'+cover+'"/>':'')+'<div style="min-width:0;flex:1"><div class="t-name">'+t.name+'</div><div class="t-artist">'+artists+'</div></div></div>';
+    });
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Kon playlist niet laden</div>';}
+};
+
+// Zoeken
+window.doSpotifySearch = async function(){
+  var q=document.getElementById('musicSearch').value.trim();
+  var el=document.getElementById('searchResults');
+  document.getElementById('playlistTracks').innerHTML='';
+  if(!q){el.innerHTML='';return;}
+  el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Zoeken…</div>';
+  try{
+    var r=await fetch('https://api.spotify.com/v1/search?q='+encodeURIComponent(q)+'&type=track&limit=25',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    var d=await r.json();
+    var tracks=(d.tracks&&d.tracks.items)||[];
+    if(!tracks.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Niets gevonden</div>';return;}
+    var h='<div class="panel-section-title">Zoekresultaten</div>';
+    tracks.forEach(function(t){
+      var cover=t.album&&t.album.images&&t.album.images[t.album.images.length-1]?t.album.images[t.album.images.length-1].url:'';
+      var artists=(t.artists||[]).map(function(a){return a.name;}).join(', ');
+      h+='<div class="track-row" onclick="playTrack(\''+t.uri+'\')">'+(cover?'<img src="'+cover+'"/>':'')+'<div style="min-width:0;flex:1"><div class="t-name">'+t.name+'</div><div class="t-artist">'+artists+'</div></div><i class="ti ti-player-play-filled" style="font-size:13px;color:#1db954;flex-shrink:0"></i></div>';
+    });
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Zoeken mislukt</div>';}
+};
+
+// Recent in het paneel
+function renderRecentInPanel(){
+  // toon recent onder de playlists als er geen zoek/playlist actief is — laten we het simpel houden in de linkerkolom als default
+}
+
+// Apparaten ophalen en kiezen
+var activeDeviceId = null;
+async function fetchDevices(){
+  if(!isSpotifyConnected())return;
+  var el=document.getElementById('deviceList');
+  try{
+    var r=await fetch('https://api.spotify.com/v1/me/player/devices',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    var d=await r.json();
+    var devices=d.devices||[];
+    var h='';
+    if(!devices.length){h='<p style="font-size:11px;color:var(--muted);font-style:italic">Geen apparaten actief.<br>Tip: tik op "Speel op tablet" of open Spotify ergens.</p>';}
+    devices.forEach(function(dev){
+      if(dev.is_active)activeDeviceId=dev.id;
+      var icon=dev.type==='Smartphone'?'device-mobile':(dev.type==='Computer'?'device-laptop':(dev.type==='Speaker'?'device-speaker':'device-desktop'));
+      h+='<div class="device-row'+(dev.is_active?' active':'')+'" onclick="transferTo(\''+dev.id+'\')"><i class="ti ti-'+icon+'" style="font-size:16px"></i><div style="flex:1;min-width:0"><div class="d-name" style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+dev.name+'</div><div style="font-size:9px;color:var(--muted)">'+dev.type+(dev.is_active?' · actief':'')+'</div></div>'+(dev.is_active?'<i class="ti ti-volume" style="color:#1db954"></i>':'')+'</div>';
+    });
+    // tablet zelf als optie als die nog niet in de lijst staat
+    if(spotifyDeviceId && !devices.find(function(x){return x.id===spotifyDeviceId;})){
+      h+='<div class="device-row" onclick="transferTo(\''+spotifyDeviceId+'\')"><i class="ti ti-device-tablet" style="font-size:16px"></i><div style="flex:1"><div class="d-name" style="font-size:12px;font-weight:500">Familie Hub Tablet</div><div style="font-size:9px;color:var(--muted)">Deze tablet</div></div></div>';
+    }
+    el.innerHTML=h;
+  }catch(e){if(el)el.innerHTML='<p style="font-size:11px;color:var(--muted)">Kon apparaten niet laden</p>';}
+}
+window.transferTo = async function(deviceId){
+  if(!isSpotifyConnected())return;
+  try{
+    await fetch('https://api.spotify.com/v1/me/player',{method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken,'Content-Type':'application/json'},body:JSON.stringify({device_ids:[deviceId],play:true})});
+    activeDeviceId=deviceId;
+    toast('Speelt nu op gekozen apparaat');
+    setTimeout(function(){fetchDevices();updateNowPlaying();},700);
+  }catch(e){}
+};
 window.playPlaylist = async function(uri){
   if(!isSpotifyConnected())return;
   var deviceParam = spotifyDeviceId ? ('?device_id='+spotifyDeviceId) : '';
