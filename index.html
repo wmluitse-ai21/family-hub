@@ -1141,7 +1141,7 @@ function startSpotify(){
     updateNowPlaying();
     fetchSpotifyUser();
     if(spotifyPollTimer)clearInterval(spotifyPollTimer);
-    spotifyPollTimer=setInterval(updateNowPlaying,10000); // elke 10s verversen
+    spotifyPollTimer=setInterval(updateNowPlaying,30000); // elke 30s verversen
     initWebPlayer();
     fetchPlaylists();
   }
@@ -1249,7 +1249,11 @@ window.doSpotifySearch = async function(){
   if(!q){el.innerHTML='';return;}
   el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Zoeken…</div>';
   try{
-    var r=await fetch('https://api.spotify.com/v1/search?q='+encodeURIComponent(q)+'&type=track&limit=25',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    var url='https://api.spotify.com/v1/search?q='+encodeURIComponent(q)+'&type=track&limit=20';
+    var r=await fetch(url,{headers:{'Authorization':'Bearer '+spotifyToken}});
+    if(r.status===429){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Even te druk — wacht een halve minuut en probeer opnieuw.</div>';return;}
+    if(r.status===401){await refreshSpotifyToken();el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Sessie vernieuwd — zoek nogmaals.</div>';return;}
+    if(!r.ok){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Zoeken mislukt (code '+r.status+')</div>';return;}
     var d=await r.json();
     var tracks=(d.tracks&&d.tracks.items)||[];
     if(!tracks.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Niets gevonden</div>';return;}
@@ -1260,7 +1264,7 @@ window.doSpotifySearch = async function(){
       h+='<div class="track-row" onclick="playTrack(\''+t.uri+'\')">'+(cover?'<img src="'+cover+'"/>':'')+'<div style="min-width:0;flex:1"><div class="t-name">'+t.name+'</div><div class="t-artist">'+artists+'</div></div><i class="ti ti-player-play-filled" style="font-size:13px;color:#1db954;flex-shrink:0"></i></div>';
     });
     el.innerHTML=h;
-  }catch(e){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Zoeken mislukt</div>';}
+  }catch(e){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Zoeken mislukt: '+e.message+'</div>';}
 };
 
 // Recent in het paneel
