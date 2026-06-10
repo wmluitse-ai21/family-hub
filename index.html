@@ -355,6 +355,9 @@ const db = getDatabase(fbApp);
 // Geheime map — moet overeenkomen met de Firebase regels
 const SECRET = 'luitse-rodenburg-2026';
 
+// Draait deze pagina binnen het verborgen verversings-iframe? (dan niet de hele app opstarten)
+var IS_SILENT_FRAME = (window.top !== window.self) && window.location.hash.indexOf('access_token') >= 0;
+
 var PERSONS = ['mom','dad','pepijn','abel'];
 var NAMES = {mom:'Mama',dad:'Papa',pepijn:'Pepijn',abel:'Abel'};
 var CALIDS = {mom:'w.m.luitse@gmail.com',dad:'t.h.rodenburg@gmail.com',pepijn:'pepijn.simen.rodenburg@gmail.com',abel:'abel.david.rodenburg@gmail.com'};
@@ -507,12 +510,16 @@ function checkTokenFreshness(){
   if(msLeft > 600000) refreshAttempted = false;
 }
 
-// Stille herauthenticatie: open Google met prompt=none in hetzelfde venster.
-// Omdat je al bij Google ingelogd bent, kom je direct terug met een nieuw token,
-// zonder loginscherm. De huidige weergave wordt hersteld via sessionStorage.
+// Stille herauthenticatie in een VERBORGEN IFRAME (niet de hele pagina herladen),
+// zodat volledig scherm op de tablet niet wegvalt. Omdat je al bij Google ingelogd
+// bent, komt het iframe direct terug op onze eigen pagina met een nieuw token in de hash,
+// die we (same-origin) kunnen uitlezen.
 function doSilentReauth(){
-  sessionStorage.setItem('gcal_pending','1');
-  sessionStorage.setItem('silent_view', JSON.stringify({view:view,weekOffset:weekOffset,dayOffset:dayOffset,monthOffset:monthOffset}));
+  var old=document.getElementById('silentAuthFrame');
+  if(old)old.remove();
+  var iframe=document.createElement('iframe');
+  iframe.id='silentAuthFrame';
+  iframe.style.display='none';
   var p=new URLSearchParams({
     client_id:GC_CLIENT_ID,
     redirect_uri:REDIRECT_URI,
@@ -521,7 +528,28 @@ function doSilentReauth(){
     prompt:'none',
     login_hint:LOGIN_HINT
   });
-  window.location.href='https://accounts.google.com/o/oauth2/auth?'+p.toString();
+  // Mislukt het binnen 20s (bijv. niet meer bij Google ingelogd), val terug op de gele herkoppel-balk
+  var timeout=setTimeout(function(){ refreshAttempted=false; updateGcalBtn(); try{iframe.remove();}catch(e){} },20000);
+  iframe.onload=function(){
+    try{
+      var hash=iframe.contentWindow.location.hash; // same-origin nadat Google terugstuurt naar onze pagina
+      if(hash){
+        var hp=new URLSearchParams(hash.replace('#',''));
+        var token=hp.get('access_token');
+        if(token){
+          clearTimeout(timeout);
+          gcalToken=token;
+          gcalExpiry=Date.now()+(parseInt(hp.get('expires_in')||3600)*1000);
+          refreshAttempted=false;
+          saveToken();updateGcalBtn();
+          fetchAllGcalEvents();fetchGoogleTasks();
+          try{iframe.remove();}catch(e){}
+        }
+      }
+    }catch(e){ /* nog op accounts.google.com (cross-origin) — timeout handelt af */ }
+  };
+  iframe.src='https://accounts.google.com/o/oauth2/auth?'+p.toString();
+  document.body.appendChild(iframe);
 }
 
 function handleOAuthCallback(){
@@ -1579,19 +1607,21 @@ window.playArtistRadio = async function(artistId, artistName){
 };
 
 // ── Start ──
-requestWakeLock();
-loadToken();
-loadSpotifyToken();
-updateGcalBtn();
-handleOAuthCallback();
-handleSpotifyCallback();
-initFirebase();
-render();
-fetchWeather();
-startSpotify();
-if(isGcalConnected()){fetchAllGcalEvents();fetchGoogleTasks();}
-// ververs weer elke 3 uur
-setInterval(fetchWeather,3*3600*1000);
+if(!IS_SILENT_FRAME){
+  requestWakeLock();
+  loadToken();
+  loadSpotifyToken();
+  updateGcalBtn();
+  handleOAuthCallback();
+  handleSpotifyCallback();
+  initFirebase();
+  render();
+  fetchWeather();
+  startSpotify();
+  if(isGcalConnected()){fetchAllGcalEvents();fetchGoogleTasks();}
+  // ververs weer elke 3 uur
+  setInterval(fetchWeather,3*3600*1000);
+}
 </script>
 </body>
 </html>
