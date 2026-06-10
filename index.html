@@ -1259,6 +1259,16 @@ window.openPlaylist = async function(id, uri, name){
   el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Laden…</div>';
   try{
     var r=await fetch('https://api.spotify.com/v1/playlists/'+id+'/tracks?limit=10',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    if(r.status===403){
+      el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px;flex-wrap:wrap">'+
+        '<div class="panel-section-title" style="margin:0;flex:1;min-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+name+'</div>'+
+        '<button onclick="playPlaylist(\''+uri+'\')" class="hdr-btn" style="font-size:10px;color:#1db954;border-color:#1db954"><i class="ti ti-player-play-filled"></i> Speel</button>'+
+        '<button onclick="shufflePlaylist(\''+uri+'\')" class="hdr-btn" style="font-size:10px"><i class="ti ti-arrows-shuffle"></i> Shuffle</button>'+
+        '<button onclick="followPlaylist(\''+id+'\')" class="hdr-btn" style="font-size:10px"><i class="ti ti-heart"></i> Opslaan</button>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--muted);padding:8px;line-height:1.5;background:var(--bg);border-radius:9px">Spotify staat het bekijken van de nummers van andermans playlist niet toe. Je kunt de playlist wél direct <b>afspelen</b> of <b>opslaan</b> — na opslaan zie je de nummers wel.</div>';
+      return;
+    }
     if(!r.ok){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Kon playlist niet laden (code '+r.status+')</div>';return;}
     var d=await r.json();
     var items=(d.items||[]).filter(function(it){return it&&it.track;});
