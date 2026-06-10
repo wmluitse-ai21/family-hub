@@ -983,6 +983,7 @@ var SPOTIFY_CLIENT_ID = '56768bd57da84a108b64c4f28a62b4c9';
 var SPOTIFY_SCOPE = 'user-read-currently-playing user-read-playback-state user-modify-playback-state user-read-recently-played streaming playlist-read-private playlist-read-collaborative';
 var spotifyToken = null, spotifyExpiry = 0;
 var spotifyPollTimer = null;
+var spotifyShuffleState = false;
 
 function loadSpotifyToken(){
   try{ var s=localStorage.getItem('fh-spotify'); if(s){ var g=JSON.parse(s); spotifyToken=g.token||null; spotifyExpiry=g.expiry||0; } }catch(e){}
@@ -1106,11 +1107,11 @@ async function updateNowPlaying(){
     else return;
   }
   try{
-    var r=await fetch('https://api.spotify.com/v1/me/player/currently-playing',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    var r=await fetch('https://api.spotify.com/v1/me/player',{headers:{'Authorization':'Bearer '+spotifyToken}});
     if(r.status===429)return; // te druk — sla deze ronde over
     var nowData=null;
     if(r.status===401){ await refreshSpotifyToken(); return; }
-    if(r.status!==204&&r.ok){ nowData=await r.json(); }
+    if(r.status!==204&&r.ok){ nowData=await r.json(); if(nowData) spotifyShuffleState=!!nowData.shuffle_state; }
     // recent afgespeeld ophalen
     var recent=[];
     try{
@@ -1147,10 +1148,24 @@ function renderSpotify(data, recent){
 }
 
 function spotifyControls(playing){
-  return '<i class="ti ti-player-skip-back-filled" style="font-size:18px;color:var(--text);cursor:pointer" onclick="spotifyPrev()"></i>'+
+  return '<i class="ti ti-arrows-shuffle" title="Shuffle" style="font-size:16px;color:'+(spotifyShuffleState?'#1db954':'var(--muted)')+';cursor:pointer" onclick="spotifyToggleShuffle()"></i>'+
+    '<i class="ti ti-player-skip-back-filled" style="font-size:18px;color:var(--text);cursor:pointer" onclick="spotifyPrev()"></i>'+
     '<i class="ti ti-'+(playing?'player-pause-filled':'player-play-filled')+'" style="font-size:26px;color:#1db954;cursor:pointer" onclick="spotifyPlayPause('+(!!playing)+')"></i>'+
     '<i class="ti ti-player-skip-forward-filled" style="font-size:18px;color:var(--text);cursor:pointer" onclick="spotifyNext()"></i>';
 }
+
+// Shuffle aan/uit zetten voor wat er nu speelt (hoofdbediening)
+window.spotifyToggleShuffle=async function(){
+  if(!isSpotifyConnected())return;
+  var newState=!spotifyShuffleState;
+  try{
+    var r=await fetch('https://api.spotify.com/v1/me/player/shuffle?state='+newState+(spotifyDeviceId?('&device_id='+spotifyDeviceId):''),{method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken}});
+    if(r.status===404){ toast('Geen actieve speler — tik eerst op "Speel op tablet"'); return; }
+    spotifyShuffleState=newState;
+    toast(newState?'Shuffle aan 🔀':'Shuffle uit');
+    setTimeout(updateNowPlaying,400);
+  }catch(e){}
+};
 
 window.spotifyPlayPause=async function(isPlaying){
   if(!isSpotifyConnected())return;
