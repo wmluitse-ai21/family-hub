@@ -1100,12 +1100,14 @@ async function refreshSpotifyToken(){
 }
 
 async function updateNowPlaying(){
+  if(document.visibilityState!=='visible')return; // niet verversen als app niet zichtbaar is
   if(!isSpotifyConnected()){
     if(localStorage.getItem('fh-spotify-refresh')){ var ok=await refreshSpotifyToken(); if(!ok)return; }
     else return;
   }
   try{
     var r=await fetch('https://api.spotify.com/v1/me/player/currently-playing',{headers:{'Authorization':'Bearer '+spotifyToken}});
+    if(r.status===429)return; // te druk — sla deze ronde over
     var nowData=null;
     if(r.status===401){ await refreshSpotifyToken(); return; }
     if(r.status!==204&&r.ok){ nowData=await r.json(); }
@@ -1169,7 +1171,7 @@ function startSpotify(){
     updateNowPlaying();
     fetchSpotifyUser();
     if(spotifyPollTimer)clearInterval(spotifyPollTimer);
-    spotifyPollTimer=setInterval(updateNowPlaying,30000); // elke 30s verversen
+    spotifyPollTimer=setInterval(updateNowPlaying,60000); // elke 60s verversen
     initWebPlayer();
     fetchPlaylists();
   }
@@ -1320,7 +1322,13 @@ window.doSpotifySearch = async function(){
       h+='<div class="panel-section-title" style="margin-top:14px"><i class="ti ti-microphone-2" style="margin-right:4px"></i>Artiesten</div>';
       artists.forEach(function(a){
         var cover=a.images&&a.images[a.images.length-1]?a.images[a.images.length-1].url:'';
-        h+='<div class="track-row" onclick="playPlaylist(\''+a.uri+'\')">'+(cover?'<img src="'+cover+'" style="border-radius:50%"/>':'<div style="width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-user" style="color:var(--muted)"></i></div>')+'<div style="min-width:0;flex:1"><div class="t-name">'+a.name+'</div><div class="t-artist">Artiest</div></div><i class="ti ti-player-play-filled" style="font-size:13px;color:#1db954;flex-shrink:0"></i></div>';
+        h+='<div class="track-row">'+
+            '<div style="display:flex;gap:10px;align-items:center;flex:1;min-width:0;cursor:pointer" onclick="playPlaylist(\''+a.uri+'\')">'+
+            (cover?'<img src="'+cover+'" style="border-radius:50%"/>':'<div style="width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-user" style="color:var(--muted)"></i></div>')+
+            '<div style="min-width:0;flex:1"><div class="t-name">'+a.name+'</div><div class="t-artist">Artiest</div></div></div>'+
+            '<i class="ti ti-radio" title="Radio — vergelijkbare muziek" style="font-size:15px;color:var(--abel-dark);flex-shrink:0;cursor:pointer;margin-right:6px" onclick="event.stopPropagation();playArtistRadio(\''+a.id+'\',\''+(a.name||\'\').replace(/\x27/g,"")+'\')"></i>'+
+            '<i class="ti ti-player-play-filled" style="font-size:13px;color:#1db954;flex-shrink:0;cursor:pointer" onclick="event.stopPropagation();playPlaylist(\''+a.uri+'\')"></i>'+
+          '</div>';
       });
     }
     // Albums
@@ -1399,6 +1407,32 @@ window.playTrack = async function(uri){
     if(r.status===404){ toast('Geen actieve speler — tik eerst op "Speel op tablet"'); return; }
     setTimeout(updateNowPlaying,700);
   }catch(e){}
+};
+
+// Artiest-radio: vergelijkbare muziek op basis van de artiest
+window.playArtistRadio = async function(artistId, artistName){
+  if(!isSpotifyConnected())return;
+  toast('Radio van '+artistName+' starten…');
+  try{
+    var r=await fetch('https://api.spotify.com/v1/recommendations?limit=10&seed_artists='+artistId,{headers:{'Authorization':'Bearer '+spotifyToken}});
+    if(!r.ok){
+      // Fallback: speel de artiest zelf af als radio niet beschikbaar is
+      toast('Radio niet beschikbaar — speel artiest af');
+      playPlaylist('spotify:artist:'+artistId);
+      return;
+    }
+    var d=await r.json();
+    var uris=(d.tracks||[]).map(function(t){return t.uri;});
+    if(!uris.length){ playPlaylist('spotify:artist:'+artistId); return; }
+    var deviceParam = spotifyDeviceId ? ('?device_id='+spotifyDeviceId) : '';
+    var pr=await fetch('https://api.spotify.com/v1/me/player/play'+deviceParam,{
+      method:'PUT',headers:{'Authorization':'Bearer '+spotifyToken,'Content-Type':'application/json'},
+      body:JSON.stringify({uris:uris})
+    });
+    if(pr.status===404){ toast('Geen actieve speler — tik eerst op "Speel op tablet"'); return; }
+    toast('Radio gestart 📻');
+    setTimeout(updateNowPlaying,700);
+  }catch(e){ toast('Kon radio niet starten'); }
 };
 
 // ── Start ──
