@@ -1322,11 +1322,12 @@ window.doSpotifySearch = async function(){
       h+='<div class="panel-section-title" style="margin-top:14px"><i class="ti ti-microphone-2" style="margin-right:4px"></i>Artiesten</div>';
       artists.forEach(function(a){
         var cover=a.images&&a.images[a.images.length-1]?a.images[a.images.length-1].url:'';
+        var safeName=(a.name||'').replace(/'/g,'').replace(/"/g,'');
         h+='<div class="track-row">'+
             '<div style="display:flex;gap:10px;align-items:center;flex:1;min-width:0;cursor:pointer" onclick="playPlaylist(\''+a.uri+'\')">'+
             (cover?'<img src="'+cover+'" style="border-radius:50%"/>':'<div style="width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-user" style="color:var(--muted)"></i></div>')+
             '<div style="min-width:0;flex:1"><div class="t-name">'+a.name+'</div><div class="t-artist">Artiest</div></div></div>'+
-            '<i class="ti ti-radio" title="Radio — vergelijkbare muziek" style="font-size:15px;color:var(--abel-dark);flex-shrink:0;cursor:pointer;margin-right:6px" onclick="event.stopPropagation();playArtistRadio(\''+a.id+'\',\''+(a.name||\'\').replace(/\x27/g,"")+'\')"></i>'+
+            '<i class="ti ti-radio" title="Radio" style="font-size:15px;color:var(--abel-dark);flex-shrink:0;cursor:pointer;margin-right:6px" onclick="event.stopPropagation();playArtistRadio(\''+a.id+'\',\''+safeName+'\')"></i>'+
             '<i class="ti ti-player-play-filled" style="font-size:13px;color:#1db954;flex-shrink:0;cursor:pointer" onclick="event.stopPropagation();playPlaylist(\''+a.uri+'\')"></i>'+
           '</div>';
       });
