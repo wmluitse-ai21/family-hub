@@ -115,6 +115,11 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 .task-text.done{text-decoration:line-through;color:var(--muted2)}
 .add-task-btn{font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer;padding:3px 4px;display:flex;align-items:center;gap:3px;transition:color .15s}
 .add-task-btn:hover{color:var(--text)}
+.filter-chip{display:flex;align-items:center;gap:4px;padding:3px 10px 3px 4px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid var(--border2);cursor:pointer;color:var(--muted);background:var(--bg);transition:all .15s;user-select:none}
+.filter-chip:hover{border-color:var(--muted)}
+.filter-chip.on{color:var(--text);border-color:var(--accent);background:var(--card2)}
+.assignee-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#0f1117;border:1.5px solid var(--card);margin-left:-5px}
+.assignee-dot:first-child{margin-left:0}
 .task-chip{display:flex;align-items:center;gap:6px;padding:5px 13px 5px 5px;border-radius:22px;font-size:12px;font-weight:600;border:1px solid var(--border2);cursor:pointer;color:var(--muted);background:var(--bg);transition:all .15s;user-select:none}
 .task-chip:hover{border-color:var(--muted)}
 .task-chip.on{color:var(--text);border-color:var(--accent);background:var(--card2)}
@@ -360,7 +365,7 @@ var GC_SCOPE = 'https://www.googleapis.com/auth/calendar.events https://www.goog
 var REDIRECT_URI = 'https://wmluitse-ai21.github.io/family-hub/';
 
 // Data — localEvents/dinners/tasks in Firebase; gcalEvents from Google
-var localEvents = {}, gcalEvents = {}, dinners = {}, tasks = {mom:[],dad:[],pepijn:[],abel:[]};
+var localEvents = {}, gcalEvents = {}, dinners = {}, tasks = [];
 var shopping = [];
 var notices = [];
 var birthdays = [];
@@ -402,8 +407,7 @@ function initFirebase(){
   });
   // tasks
   onValue(ref(db,SECRET+'/tasks'), function(snap){
-    var t = snap.val() || {};
-    tasks = {mom:t.mom||[],dad:t.dad||[],pepijn:t.pepijn||[],abel:t.abel||[]};
+    tasks = normalizeTasks(snap.val());
     renderTasks();
   });
   // boodschappen
@@ -808,10 +812,64 @@ function renderMonth(){
   document.getElementById('calBody').innerHTML=h;
 }
 
+var taskFilter = 'all';
+window.setTaskFilter=function(p){ taskFilter=p; renderTasks(); };
+
+// Zet oude/nieuwe data om naar één lijst met meerdere toegewezen personen.
+// Oud formaat {mom:[...],dad:[...]} wordt samengevoegd op taaktekst (dubbele taken → één taak met meerdere personen).
+function normalizeTasks(raw){
+  if(!raw) return [];
+  if(Array.isArray(raw)){
+    return raw.filter(function(x){return x;}).map(function(t){
+      return {id:t.id||uid(),text:t.text||'',done:!!t.done,assignees:t.assignees||[],gtaskIds:t.gtaskIds||{}};
+    });
+  }
+  // Oud per-persoon formaat → samenvoegen op tekst
+  var byText={}, order=[];
+  PERSONS.forEach(function(p){
+    (raw[p]||[]).forEach(function(t){
+      var key=(t.text||'').trim().toLowerCase();
+      if(!byText[key]){ byText[key]={id:t.id||uid(),text:t.text||'',done:true,assignees:[],gtaskIds:{}}; order.push(key); }
+      var m=byText[key];
+      if(m.assignees.indexOf(p)<0)m.assignees.push(p);
+      if(t.gtaskId)m.gtaskIds[p]=t.gtaskId;
+      m.done=m.done&&!!t.done; // klaar zodra iedereen het heeft afgevinkt
+    });
+  });
+  return order.map(function(k){return byText[k];});
+}
+
 function renderTasks(){
-  var h='';
-  for(var pi=0;pi<PERSONS.length;pi++){var p=PERSONS[pi],pt=tasks[p]||[];h+='<div class="task-person"><div class="task-person-hdr"><div style="width:8px;height:8px;border-radius:50%;background:var(--'+p+')"></div><span class="person-color-'+p+'">'+NAMES[p]+'</span></div>';for(var ti=0;ti<pt.length;ti++){var t=pt[ti];h+='<div class="task-item" style="justify-content:space-between"><div style="display:flex;align-items:flex-start;gap:5px;flex:1" onclick="toggleTask(\''+p+'\',\''+t.id+'\')"><div class="task-check'+(t.done?' done':'')+'">'+( t.done?'<i class="ti ti-check"></i>':'')+'</div><span class="task-text'+(t.done?' done':'')+'">'+t.text+'</span></div><i class="ti ti-x" style="font-size:11px;color:var(--muted);cursor:pointer" onclick="removeTask(\''+p+'\',\''+t.id+'\')"></i></div>';}h+='<button class="add-task-btn" onclick="openTaskModal(\''+p+'\')"><i class="ti ti-plus"></i> Toevoegen</button></div>';}
-  document.getElementById('taskList').innerHTML=h;
+  var el=document.getElementById('taskList');
+  if(!el)return;
+  // Filterbalk
+  var h='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px">';
+  h+='<div class="filter-chip'+(taskFilter==='all'?' on':'')+'" onclick="setTaskFilter(\'all\')">Iedereen</div>';
+  for(var i=0;i<PERSONS.length;i++){
+    var fp=PERSONS[i];
+    h+='<div class="filter-chip'+(taskFilter===fp?' on':'')+'" onclick="setTaskFilter(\''+fp+'\')"><span class="avatar-dot" style="background:var(--'+fp+'-dark);width:16px;height:16px;font-size:8px">'+NAMES[fp].charAt(0)+'</span>'+NAMES[fp]+'</div>';
+  }
+  h+='</div>';
+  // Takenlijst (gefilterd)
+  var list=tasks.filter(function(t){ return taskFilter==='all' || (t.assignees||[]).indexOf(taskFilter)>=0; });
+  if(!list.length){ h+='<p style="font-size:10px;color:var(--muted);font-style:italic;padding:2px 0 8px">Geen taken'+(taskFilter!=='all'?' voor '+NAMES[taskFilter]:'')+'</p>'; }
+  for(var j=0;j<list.length;j++){
+    var t=list[j];
+    var badges='';
+    (t.assignees||[]).forEach(function(p){ badges+='<span class="assignee-dot" style="background:var(--'+p+'-dark)" title="'+NAMES[p]+'">'+NAMES[p].charAt(0)+'</span>'; });
+    h+='<div class="task-item" style="justify-content:space-between;align-items:center">'+
+        '<div style="display:flex;align-items:flex-start;gap:6px;flex:1;min-width:0" onclick="toggleTask(\''+t.id+'\')">'+
+          '<div class="task-check'+(t.done?' done':'')+'">'+(t.done?'<i class="ti ti-check"></i>':'')+'</div>'+
+          '<span class="task-text'+(t.done?' done':'')+'" style="flex:1">'+t.text+'</span>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'+
+          '<div style="display:flex" title="Toegewezen aan">'+badges+'</div>'+
+          '<i class="ti ti-x" style="font-size:11px;color:var(--muted);cursor:pointer" onclick="removeTask(\''+t.id+'\')"></i>'+
+        '</div>'+
+      '</div>';
+  }
+  h+='<button class="add-task-btn" style="margin-top:6px" onclick="openTaskModal()"><i class="ti ti-plus"></i> Taak toevoegen</button>';
+  el.innerHTML=h;
 }
 
 function renderShopping(){
@@ -946,10 +1004,10 @@ function renderTaskChips(){
   el.innerHTML=h;
 }
 window.toggleTaskPerson=function(p){ taskSelected[p]=!taskSelected[p]; renderTaskChips(); };
-window.openTaskModal=function(person){taskSelected={};if(person)taskSelected[person]=true;renderTaskChips();document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
-window.saveTask=async function(){var text=document.getElementById('taskTitle').value.trim();if(!text)return;var persons=PERSONS.filter(function(p){return taskSelected[p];});if(!persons.length){toast('Kies minstens één persoon');return;}for(var i=0;i<persons.length;i++){var person=persons[i];if(!tasks[person])tasks[person]=[];var newTask={id:uid(),text:text,done:false};if(isGcalConnected()){var gid=await pushTaskToGoogle(text,person);if(gid){newTask.gtaskId=gid;}}tasks[person].push(newTask);}closeModal('taskModal');await saveTasks();toast(persons.length>1?('Taak toegevoegd voor '+persons.length+' personen'):'Taak toegevoegd');};
-window.toggleTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t){t.done=!t.done;if(isGcalConnected()&&t.gtaskId)updateGoogleTaskStatus(t.gtaskId,t.done,person);await saveTasks();}};
-window.removeTask=async function(person,id){var t=(tasks[person]||[]).find(function(x){return x.id===id;});if(t&&isGcalConnected()&&t.gtaskId)deleteGoogleTask(t.gtaskId,person);tasks[person]=(tasks[person]||[]).filter(function(x){return x.id!==id;});await saveTasks();toast('Taak verwijderd');};
+window.openTaskModal=function(person){taskSelected={};var pre=person||(taskFilter&&taskFilter!=='all'?taskFilter:null);if(pre)taskSelected[pre]=true;renderTaskChips();document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
+window.saveTask=async function(){var text=document.getElementById('taskTitle').value.trim();if(!text)return;var persons=PERSONS.filter(function(p){return taskSelected[p];});if(!persons.length){toast('Kies minstens één persoon');return;}var newTask={id:uid(),text:text,done:false,assignees:persons,gtaskIds:{}};if(isGcalConnected()){for(var i=0;i<persons.length;i++){var gid=await pushTaskToGoogle(text,persons[i]);if(gid)newTask.gtaskIds[persons[i]]=gid;}}tasks.push(newTask);closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');};
+window.toggleTask=async function(id){var t=tasks.find(function(x){return x.id===id;});if(!t)return;t.done=!t.done;if(isGcalConnected()&&t.gtaskIds){for(var p in t.gtaskIds){updateGoogleTaskStatus(t.gtaskIds[p],t.done,p);}}await saveTasks();};
+window.removeTask=async function(id){var t=tasks.find(function(x){return x.id===id;});if(t&&isGcalConnected()&&t.gtaskIds){for(var p in t.gtaskIds){deleteGoogleTask(t.gtaskIds[p],p);}}tasks=tasks.filter(function(x){return x.id!==id;});await saveTasks();toast('Taak verwijderd');};
 
 // Verjaardagen die op een bepaalde datum vallen
 function birthdaysOn(dateKey){
