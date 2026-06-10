@@ -312,7 +312,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
       <div class="music-col">
         <div style="position:relative;margin-bottom:14px">
           <i class="ti ti-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px"></i>
-          <input type="text" id="musicSearch" placeholder="Zoek nummers, artiesten, albums…" style="width:100%;padding:10px 12px 10px 34px;border-radius:11px;border:1px solid var(--border2);background:var(--bg);font-size:13px;color:var(--text);outline:none" onkeydown="if(event.key==='Enter')doSpotifySearch()"/>
+          <input type="text" id="musicSearch" placeholder="Zoek nummers, artiesten, albums…" style="width:100%;padding:10px 12px 10px 34px;border-radius:11px;border:1px solid var(--border2);background:var(--bg);font-size:13px;color:var(--text);outline:none" oninput="onSearchInput()" onkeydown="if(event.key==='Enter')doSpotifySearch()"/>
         </div>
         <div id="searchResults"></div>
         <div id="playlistTracks"></div>
@@ -1267,6 +1267,15 @@ window.openPlaylist = async function(id, uri, name){
     });
     el.innerHTML=h;
   }catch(e){el.innerHTML='<div style="font-size:11px;color:var(--muted);padding:8px">Kon playlist niet laden</div>';}
+};
+
+// Live zoeken terwijl je typt (met korte vertraging)
+var searchDebounce = null;
+window.onSearchInput = function(){
+  var q=document.getElementById('musicSearch').value.trim();
+  if(searchDebounce)clearTimeout(searchDebounce);
+  if(!q){document.getElementById('searchResults').innerHTML='';return;}
+  searchDebounce=setTimeout(function(){doSpotifySearch();},400);
 };
 
 // Zoeken
