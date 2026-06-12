@@ -417,6 +417,7 @@ function initFirebase(){
   // boodschappen
   onValue(ref(db,SECRET+'/shopping'), function(snap){
     shopping = snap.val() || [];
+    if(pruneOldDoneShopping()) saveShopping();
     renderShopping();
   });
   // prikbord
@@ -871,6 +872,18 @@ function normalizeTasks(raw){
 // Voltooide taken van een eerdere dag verdwijnen automatisch van het scherm.
 // Vandaag afgevinkte taken blijven staan; pas de volgende dag worden ze opgeruimd.
 // Geeft true terug als er iets is gewijzigd (zodat we dan opslaan).
+// Zelfde opruimlogica voor de boodschappenlijst: vandaag afgevinkte items blijven staan,
+// de volgende dag verdwijnen ze. Geeft true terug als er iets is gewijzigd.
+function pruneOldDoneShopping(){
+  var today=iso(new Date());
+  var changed=false;
+  shopping.forEach(function(it){ if(it.done && !it.doneDate){ it.doneDate=today; changed=true; } });
+  var before=shopping.length;
+  shopping=shopping.filter(function(it){ return !(it.done && it.doneDate && it.doneDate < today); });
+  if(shopping.length!==before) changed=true;
+  return changed;
+}
+
 function pruneOldDoneTasks(){
   var today=iso(new Date());
   var changed=false;
@@ -936,7 +949,7 @@ window.addShopItem=async function(){
 };
 window.toggleShop=async function(id){
   var it=shopping.find(function(x){return x.id===id;});
-  if(it){it.done=!it.done;await saveShopping();}
+  if(it){it.done=!it.done;it.doneDate=it.done?iso(new Date()):null;await saveShopping();}
 };
 window.removeShop=async function(id){
   shopping=shopping.filter(function(x){return x.id!==id;});
@@ -1102,8 +1115,8 @@ document.addEventListener('visibilitychange',function(){ if(document.visibilityS
 // gcal refresh elke 10 min
 setInterval(function(){if(isGcalConnected())fetchAllGcalEvents();},600000);
 // voltooide taken van eerdere dagen elke 15 min opruimen (vangt de middernacht-overgang af)
-setInterval(function(){ if(pruneOldDoneTasks()){ saveTasks(); renderTasks(); } },15*60*1000);
-document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && pruneOldDoneTasks()){ saveTasks(); renderTasks(); } });
+setInterval(function(){ if(pruneOldDoneTasks()){ saveTasks(); renderTasks(); } if(pruneOldDoneShopping()){ saveShopping(); renderShopping(); } },15*60*1000);
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState!=='visible')return; if(pruneOldDoneTasks()){ saveTasks(); renderTasks(); } if(pruneOldDoneShopping()){ saveShopping(); renderShopping(); } });
 
 // ── Spotify ────────────────────────────────────────────────────────────────
 var SPOTIFY_CLIENT_ID = '56768bd57da84a108b64c4f28a62b4c9';
