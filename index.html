@@ -166,6 +166,19 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px}
 ::-webkit-scrollbar-thumb:hover{background:var(--muted2)}
+.clock{display:flex;flex-direction:column;align-items:flex-start;line-height:1.05;padding:0 6px;margin-left:2px}
+.clock .c-time{font-size:21px;font-weight:700;letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.clock .c-date{font-size:10px;color:var(--muted);text-transform:capitalize;margin-top:1px}
+.combined-row{display:grid;border-bottom:1px solid var(--border);min-height:130px}
+.event-chip .ev-time{font-weight:700;font-variant-numeric:tabular-nums;margin-right:1px}
+.event-chip .ev-name{font-weight:700;margin-right:2px}
+.event-chip .ev-allday{opacity:.6;margin-right:2px}
+.timeline-row{display:grid;grid-template-columns:74px 1fr;border-bottom:1px solid var(--border);align-items:center;min-height:46px;cursor:pointer;transition:background .12s}
+.timeline-row:last-child{border-bottom:none}
+.timeline-row:hover{background:var(--card2)}
+.timeline-time{padding:8px 10px;font-size:14px;font-weight:700;color:var(--text);text-align:right;font-variant-numeric:tabular-nums;border-right:1px solid var(--border);align-self:stretch;display:flex;align-items:center;justify-content:flex-end}
+.timeline-ev{margin:6px 10px;font-size:13px;padding:7px 11px;display:flex;align-items:center;gap:8px}
+.timeline-person{margin-left:auto;font-size:11px;font-weight:600;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -177,6 +190,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 <div class="app">
   <header>
     <div class="logo"><i class="ti ti-home-heart"></i><h1>Familie Hub</h1></div>
+    <div class="clock"><span class="c-time" id="clockTime">--:--</span><span class="c-date" id="clockDate"></span></div>
     <div class="view-tabs">
       <button class="view-tab active" onclick="setView('week')">Week</button>
       <button class="view-tab" onclick="setView('day')">Dag</button>
@@ -191,6 +205,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
     <button class="hdr-btn google" id="gcalBtn" onclick="connectGoogle()">
       <i class="ti ti-calendar"></i><span id="gcalLbl">Google Agenda</span>
     </button>
+    <button class="hdr-btn" onclick="openTimerModal()" title="Timer"><i class="ti ti-alarm"></i> Timer</button>
     <button class="hdr-btn" id="fsBtn" onclick="toggleFullscreen()" title="Volledig scherm">
       <i class="ti ti-maximize" id="fsIcon"></i>
     </button>
@@ -306,6 +321,29 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
   </div>
 </div>
 
+<div class="modal-overlay" id="timerModal">
+  <div class="modal" style="width:330px;text-align:center">
+    <h2 style="justify-content:center"><i class="ti ti-alarm"></i> Timer</h2>
+    <div id="timerDisplay" style="font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;margin:4px 0 14px;letter-spacing:.02em">05:00</div>
+    <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
+      <button class="hdr-btn" onclick="timerSetPreset(1)">1 min</button>
+      <button class="hdr-btn" onclick="timerSetPreset(3)">3 min</button>
+      <button class="hdr-btn" onclick="timerSetPreset(5)">5 min</button>
+      <button class="hdr-btn" onclick="timerSetPreset(10)">10 min</button>
+      <button class="hdr-btn" onclick="timerSetPreset(15)">15 min</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:4px;font-size:12px;color:var(--muted)">
+      <input id="timerMin" type="number" min="0" max="180" value="5" style="width:62px;text-align:center"/> min
+      <input id="timerSec" type="number" min="0" max="59" value="0" style="width:62px;text-align:center"/> sec
+    </div>
+    <div class="modal-btns" style="justify-content:center">
+      <button class="btn-cancel" onclick="timerReset()">Reset</button>
+      <button class="btn-save" id="timerStartBtn" onclick="timerStartPause()" style="min-width:92px">Start</button>
+      <button class="btn-cancel" onclick="closeModal('timerModal')">Sluiten</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Muziekpaneel overlay -->
@@ -388,6 +426,23 @@ function getEventsForDate(k) {
   var res = local.slice();
   for (var j=0;j<gcal.length;j++){ if(!ids[gcal[j].gcalId+'|'+gcal[j].person]) res.push(gcal[j]); }
   return res;
+}
+
+// Begin-minuut van een afspraak (voor sorteren). Afspraken zonder tijd komen bovenaan.
+function evStartMinutes(ev){
+  if(!ev.time) return -1;
+  var m=(''+ev.time).match(/(\d{1,2}):(\d{2})/);
+  if(!m) return -1;
+  return parseInt(m[1],10)*60+parseInt(m[2],10);
+}
+// Sorteer afspraken chronologisch (alle personen door elkaar).
+function sortEvents(evs){
+  return evs.slice().sort(function(a,b){ return evStartMinutes(a)-evStartMinutes(b); });
+}
+// Toon alleen de begintijd 'HH:MM' (ook als er een reeks is ingevuld zoals '15:00 – 16:30').
+function startTime(t){
+  var m=(''+t).match(/(\d{1,2}):(\d{2})/);
+  return m ? (m[1].length<2?'0'+m[1]:m[1])+':'+m[2] : t;
 }
 
 // ── Wake Lock ──
@@ -789,21 +844,26 @@ function render(){if(view==='week')renderWeek();else if(view==='day')renderDay()
 function renderWeek(){
   var dates=getWeekDates(weekOffset);
   document.getElementById('periodLabel').textContent=dates[0].toLocaleDateString('nl-NL',{month:'short',day:'numeric'})+' – '+dates[6].toLocaleDateString('nl-NL',{month:'short',day:'numeric'});
-  var h='<div class="grid-wrapper"><div class="day-headers" style="grid-template-columns:72px repeat(7,1fr)"><div class="day-header"></div>';
+  var cols='52px repeat(7,1fr)';
+  var h='<div class="grid-wrapper"><div class="day-headers" style="grid-template-columns:'+cols+'"><div class="day-header"></div>';
   for(var i=0;i<dates.length;i++){var bdays=birthdaysOn(iso(dates[i]));h+='<div class="day-header'+(isToday(dates[i])?' today':'')+'">'+DAYS[i]+'<span>'+dates[i].getDate()+'</span>'+(bdays.length?'<div style="font-size:10px" title="'+bdays.map(function(b){return b.name;}).join(', ')+'">🎂</div>':'')+'</div>';}
   h+='</div>';
-  for(var pi=0;pi<PERSONS.length;pi++){
-    var p=PERSONS[pi];
-    h+='<div class="person-row" style="grid-template-columns:36px repeat(7,1fr)"><div class="row-label" style="justify-content:center;align-items:center"><div class="avatar-dot" style="background:var(--'+p+'-dark);width:20px;height:20px;font-size:9px" title="'+NAMES[p]+'">'+NAMES[p].charAt(0)+'</div></div>';
-    for(var di=0;di<dates.length;di++){
-      var k=iso(dates[di]),evs=getEventsForDate(k).filter(function(e){return e.person===p;});
-      h+='<div class="day-cell'+(isToday(dates[di])?' today-col':'')+'" onclick="openEventModal(\''+p+'\',\''+k+'\',event)">';
-      for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];h+='<div class="event-chip bg-'+p+(ev.fromGcal?' gcal':'')+'" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')" title="'+ev.title+'">'+(ev.fromGcal?'<i class="ti ti-calendar" style="font-size:8px"></i>':'')+(ev.time?'<i class="ti ti-clock"></i>':'')+trunc(ev.title,14)+'</div>';}
-      h+='<button class="add-btn"><i class="ti ti-plus"></i></button></div>';
+  // Eén gecombineerde rij: alle personen samen, op tijd gesorteerd
+  h+='<div class="combined-row" style="grid-template-columns:'+cols+'"><div class="row-label" style="justify-content:center;align-items:flex-start;padding-top:9px" title="Op tijd gesorteerd"><i class="ti ti-clock-hour-3" style="color:var(--muted);font-size:15px"></i></div>';
+  for(var di=0;di<dates.length;di++){
+    var k=iso(dates[di]),evs=sortEvents(getEventsForDate(k));
+    h+='<div class="day-cell'+(isToday(dates[di])?' today-col':'')+'" onclick="openEventModal(null,\''+k+'\',event)">';
+    for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];
+      h+='<div class="event-chip bg-'+ev.person+(ev.fromGcal?' gcal':'')+'" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')" title="'+(ev.time?ev.time+' ':'')+ev.title+' — '+NAMES[ev.person]+'">'+
+          (ev.time?'<span class="ev-time">'+startTime(ev.time)+'</span>':'<span class="ev-allday"><i class="ti ti-point-filled" style="font-size:8px"></i></span>')+
+          '<span class="ev-name" style="color:var(--'+ev.person+'-dark)">'+NAMES[ev.person].charAt(0)+'</span>'+
+          trunc(ev.title,13)+
+        '</div>';
     }
-    h+='</div>';
+    h+='<button class="add-btn"><i class="ti ti-plus"></i></button></div>';
   }
-  h+='<div class="dinner-row" style="grid-template-columns:36px repeat(7,1fr)"><div class="dinner-label" style="padding:8px 4px;justify-content:center" title="Diner"><i class="ti ti-soup"></i></div>';
+  h+='</div>';
+  h+='<div class="dinner-row" style="grid-template-columns:'+cols+'"><div class="dinner-label" style="padding:8px 4px;justify-content:center" title="Diner"><i class="ti ti-soup"></i></div>';
   for(var di2=0;di2<dates.length;di2++){var dk=iso(dates[di2]),dn=dinners[dk]||{};h+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">'+(dn.meal?'<span class="meal">'+trunc(dn.meal,16)+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" title="Bekijk recept" style="color:var(--abel)"><i class="ti ti-external-link" style="font-size:9px"></i></a>':'')+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>':'')+'</div>';}
   h+='</div></div>';
   document.getElementById('calBody').innerHTML=h;
@@ -823,11 +883,24 @@ function renderDay(){
     if(bdays.length)h+='<div style="font-size:13px;font-weight:500">🎂 '+bdays.map(function(b){return b.name;}).join(', ')+'</div>';
     h+='</div>';
   }
-  h+='<div class="day-view-grid"><div style="display:grid;grid-template-columns:80px repeat(4,1fr);border-bottom:1px solid var(--border)"><div class="day-col-hdr" style="background:var(--bg);border-right:1px solid var(--border)"></div>';
-  for(var pi=0;pi<PERSONS.length;pi++)h+='<div class="day-col-hdr person-color-'+PERSONS[pi]+'" style="background:var(--'+PERSONS[pi]+'-light)">'+NAMES[PERSONS[pi]]+'</div>';
-  h+='</div><div class="day-view-row" style="grid-template-columns:80px repeat(4,1fr);min-height:80px"><div class="day-view-label" style="flex-direction:column;align-items:flex-start;justify-content:center"><i class="ti ti-calendar" style="color:var(--muted);font-size:13px"></i><span style="font-size:9px;color:var(--muted);margin-top:2px">Afspraken</span></div>';
-  for(var pi2=0;pi2<PERSONS.length;pi2++){var p2=PERSONS[pi2],evs=getEventsForDate(k).filter(function(e){return e.person===p2;});h+='<div class="day-view-cell" onclick="openEventModal(\''+p2+'\',\''+k+'\',event)">';for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];h+='<div class="event-chip bg-'+p2+(ev.fromGcal?' gcal':'')+'" style="font-size:11px;padding:4px 7px" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')">'+(ev.fromGcal?'<i class="ti ti-calendar"></i>':'')+(ev.time?'<strong>'+ev.time+'</strong> ':'')+ev.title+'</div>';}h+='<button class="add-btn" style="opacity:.4"><i class="ti ti-plus"></i></button></div>';}
-  h+='</div><div class="day-view-row" style="grid-template-columns:80px 1fr;border-bottom:none"><div class="day-view-label" style="background:#fff9f0"><i class="ti ti-soup" style="color:var(--abel);font-size:13px"></i></div><div style="padding:8px 10px;cursor:pointer;background:#fff9f0" onclick="openDinnerModal(\''+k+'\')">'+(dn.meal?'<div style="font-size:13px;font-weight:500">'+dn.meal+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--abel);font-size:11px;font-weight:600"><i class="ti ti-external-link"></i> recept</a>':'')+'</div>':'<div style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</div>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'" style="margin-top:5px;font-size:10px;padding:3px 8px"><i class="ti ti-chef-hat"></i> '+NAMES[dn.cook]+' kookt vanavond</div>':'')+'</div></div></div>';
+  var evs=sortEvents(getEventsForDate(k));
+  h+='<div class="day-view-grid">';
+  if(!evs.length){
+    h+='<div style="padding:18px;text-align:center;color:var(--muted);font-size:12px;font-style:italic">Geen afspraken vandaag</div>';
+  }
+  for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];
+    h+='<div class="timeline-row" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')">'+
+        '<div class="timeline-time">'+(ev.time?startTime(ev.time):'<span style="font-size:9px;color:var(--muted2);font-weight:600">hele dag</span>')+'</div>'+
+        '<div class="timeline-ev event-chip bg-'+ev.person+(ev.fromGcal?' gcal':'')+'">'+
+          (ev.fromGcal?'<i class="ti ti-calendar"></i> ':'')+
+          '<span style="font-weight:600">'+ev.title+'</span>'+
+          '<span class="timeline-person" style="color:var(--'+ev.person+'-dark)">'+NAMES[ev.person]+'</span>'+
+        '</div>'+
+      '</div>';
+  }
+  h+='<div class="timeline-row" onclick="openEventModal(null,\''+k+'\',event)"><div class="timeline-time"><i class="ti ti-plus" style="color:var(--muted);font-size:13px"></i></div><div style="padding:8px 11px;font-size:12px;color:var(--muted)">Afspraak toevoegen</div></div>';
+  h+='<div class="timeline-row" style="background:rgba(201,168,107,.05)" onclick="openDinnerModal(\''+k+'\')"><div class="timeline-time"><i class="ti ti-soup" style="color:var(--abel);font-size:15px"></i></div><div style="padding:8px 11px">'+(dn.meal?'<span style="font-size:13px;font-weight:500">'+dn.meal+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--abel);font-size:11px;font-weight:600"><i class="ti ti-external-link"></i> recept</a>':'')+'</span>':'<span style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'" style="margin-top:4px;font-size:10px;padding:3px 8px"><i class="ti ti-chef-hat"></i> '+NAMES[dn.cook]+' kookt vanavond</div>':'')+'</div></div>';
+  h+='</div>';
   document.getElementById('calBody').innerHTML=h;
 }
 
@@ -975,6 +1048,7 @@ function findEvent(evId){
 
 window.openEventModal=function(person,dateKey,e){
   if(e)e.stopPropagation();
+  if(!person)person=PERSONS[0];
   editingEvent=null;editingCell={person:person,dateKey:dateKey};
   document.getElementById('evPerson').value=person;
   document.getElementById('evTitle').value='';document.getElementById('evTime').value='';
@@ -1107,6 +1181,71 @@ document.addEventListener('fullscreenchange', function(){
   var icon = document.getElementById('fsIcon');
   icon.className = document.fullscreenElement ? 'ti ti-minimize' : 'ti ti-maximize';
 });
+
+// ── Digitale klok ──
+function updateClock(){
+  var d=new Date();
+  var t=document.getElementById('clockTime'); if(t)t.textContent=d.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
+  var dd=document.getElementById('clockDate'); if(dd)dd.textContent=d.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'});
+}
+setInterval(updateClock,1000);
+updateClock();
+
+// ── Timer ──
+var timerRemaining=0, timerRunning=false, timerInterval=null, timerEndAt=0;
+function fmtMMSS(s){var m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
+function updateTimerDisplay(){var el=document.getElementById('timerDisplay');if(el)el.textContent=fmtMMSS(timerRemaining);}
+function stopTimerTick(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
+window.openTimerModal=function(){
+  document.getElementById('timerModal').classList.add('open');
+  if(!timerRunning&&timerRemaining<=0){var m=parseInt(document.getElementById('timerMin').value)||0,s=parseInt(document.getElementById('timerSec').value)||0;timerRemaining=m*60+s;}
+  updateTimerDisplay();
+};
+window.timerSetPreset=function(mins){
+  stopTimerTick();timerRunning=false;timerRemaining=mins*60;
+  document.getElementById('timerMin').value=mins;document.getElementById('timerSec').value=0;
+  document.getElementById('timerStartBtn').textContent='Start';
+  updateTimerDisplay();
+};
+window.timerStartPause=function(){
+  if(timerRunning){ stopTimerTick();timerRunning=false;document.getElementById('timerStartBtn').textContent='Hervat';return; }
+  if(timerRemaining<=0){var m=parseInt(document.getElementById('timerMin').value)||0,s=parseInt(document.getElementById('timerSec').value)||0;timerRemaining=m*60+s;}
+  if(timerRemaining<=0){toast('Stel eerst een tijd in');return;}
+  timerRunning=true;document.getElementById('timerStartBtn').textContent='Pauze';
+  timerEndAt=Date.now()+timerRemaining*1000;
+  stopTimerTick();
+  timerInterval=setInterval(function(){
+    timerRemaining=Math.max(0,Math.round((timerEndAt-Date.now())/1000));
+    updateTimerDisplay();
+    if(timerRemaining<=0){ stopTimerTick();timerRunning=false;document.getElementById('timerStartBtn').textContent='Start';timerFinished(); }
+  },200);
+};
+window.timerReset=function(){
+  stopTimerTick();timerRunning=false;timerRemaining=0;
+  document.getElementById('timerStartBtn').textContent='Start';
+  updateTimerDisplay();
+};
+function timerFinished(){
+  toast('⏰ Timer afgelopen!');
+  playTimerBeep();
+  var el=document.getElementById('timerDisplay');
+  if(el){var n=0;var fl=setInterval(function(){el.style.color=(n%2?'':'var(--abel-dark)');n++;if(n>9){clearInterval(fl);el.style.color='';}},300);}
+}
+function playTimerBeep(){
+  try{
+    var ctx=new (window.AudioContext||window.webkitAudioContext)();
+    [0,0.5,1.0].forEach(function(off){
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';o.frequency.value=880;
+      var t0=ctx.currentTime+off;
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(0.35,t0+0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001,t0+0.35);
+      o.start(t0);o.stop(t0+0.4);
+    });
+  }catch(e){}
+}
 
 // expiry check elke minuut + stille verversing bij bijna-verlopen token
 setInterval(function(){ updateGcalBtn(); checkTokenFreshness(); },60000);
