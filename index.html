@@ -173,6 +173,21 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 .event-chip .ev-time{font-weight:700;font-variant-numeric:tabular-nums;margin-right:1px}
 .event-chip .ev-name{font-weight:700;margin-right:2px}
 .event-chip .ev-allday{opacity:.6;margin-right:2px}
+.event-chip.multi{background:var(--card2);color:var(--text);border:1px solid var(--border2)}
+.ev-people{display:inline-flex;margin-right:3px;flex-shrink:0}
+.ev-people .pdot{width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#0f1117;border:1.5px solid var(--card);margin-left:-4px}
+.ev-people .pdot:first-child{margin-left:0}
+.band-row{display:grid;border-bottom:1px solid var(--border)}
+.band-label{border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px 3px;gap:1px;font-size:8px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;text-align:center}
+.band-label i{font-size:15px;color:var(--muted);margin-bottom:2px}
+.band-range{font-size:8px;color:var(--muted2);font-weight:600}
+.band-cell{min-height:58px;border-right:1px solid var(--border);padding:5px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:background .12s}
+.band-cell:hover{background:var(--card2)}
+.band-cell:last-child{border-right:none}
+.band-cell.today-col{background:rgba(201,168,107,.05)}
+.timeline-band{padding:7px 12px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.timeline-band i{font-size:15px}
+.timeline-empty{padding:6px 14px;font-size:11px;color:var(--muted2);border-bottom:1px solid var(--border)}
 .timeline-row{display:grid;grid-template-columns:74px 1fr;border-bottom:1px solid var(--border);align-items:center;min-height:46px;cursor:pointer;transition:background .12s}
 .timeline-row:last-child{border-bottom:none}
 .timeline-row:hover{background:var(--card2)}
@@ -443,6 +458,63 @@ function sortEvents(evs){
 function startTime(t){
   var m=(''+t).match(/(\d{1,2}):(\d{2})/);
   return m ? (m[1].length<2?'0'+m[1]:m[1])+':'+m[2] : t;
+}
+
+// Personen in vaste volgorde (mom, dad, pepijn, abel) voor consistente kleuren.
+function sortPersons(arr){ return arr.slice().sort(function(a,b){ return PERSONS.indexOf(a)-PERSONS.indexOf(b); }); }
+// Gekleurde initiaal-bolletjes voor een groepje personen.
+function peopleDots(ppl){ return '<span class="ev-people">'+ppl.map(function(p){ return '<span class="pdot" style="background:var(--'+p+'-dark)" title="'+NAMES[p]+'">'+NAMES[p].charAt(0)+'</span>'; }).join('')+'</span>'; }
+
+// Voeg dezelfde afspraak van meerdere personen samen tot één item.
+// Sleutel: zelfde Google-afspraak (gcalId) óf zelfde titel+tijd op die dag.
+function getMergedEventsForDate(k){
+  var evs=getEventsForDate(k), groups={}, order=[];
+  evs.forEach(function(ev){
+    var key = ev.gcalId ? ('g:'+ev.gcalId) : ('l:'+(ev.title||'').trim().toLowerCase()+'|'+(ev.time||''));
+    if(!groups[key]){ groups[key]={title:ev.title,time:ev.time||'',fromGcal:!!ev.fromGcal,persons:[],rep:ev}; order.push(key); }
+    var g=groups[key];
+    if(g.persons.indexOf(ev.person)<0) g.persons.push(ev.person);
+    if(!g.time && ev.time) g.time=ev.time;
+    if(ev.fromGcal) g.fromGcal=true;
+  });
+  return order.map(function(key){ return groups[key]; });
+}
+
+// Tijdbanden: ochtend 07–12, middag 12–18, avond 18–24, plus 'hele dag' voor afspraken zonder tijd.
+var BANDS=[
+  {key:'allday',    label:'Hele dag', range:'',      icon:'ti-calendar'},
+  {key:'morning',   label:'Ochtend',  range:'07–12', icon:'ti-sunrise'},
+  {key:'afternoon', label:'Middag',   range:'12–18', icon:'ti-sun'},
+  {key:'evening',   label:'Avond',    range:'18–24', icon:'ti-moon'}
+];
+function eventBand(ev){
+  var m=evStartMinutes(ev);
+  if(m<0) return 'allday';
+  if(m<12*60) return 'morning';
+  if(m<18*60) return 'afternoon';
+  return 'evening';
+}
+// Chip voor de weekweergave (samengevoegd, meerkleurig bij meerdere personen).
+function eventChipHTML(ev,k){
+  var ppl=sortPersons(ev.persons),single=ppl.length===1;
+  return '<div class="event-chip '+(single?('bg-'+ppl[0]):'multi')+(ev.fromGcal?' gcal':'')+'" onclick="editEvent(event,\''+ev.rep.id+'\',\''+k+'\')" title="'+(ev.time?ev.time+' ':'')+ev.title+' — '+ppl.map(function(p){return NAMES[p];}).join(', ')+'">'+
+    (ev.time?'<span class="ev-time">'+startTime(ev.time)+'</span>':'')+
+    (single?'<span class="ev-name" style="color:var(--'+ppl[0]+'-dark)">'+NAMES[ppl[0]].charAt(0)+'</span>':peopleDots(ppl))+
+    trunc(ev.title,13)+
+  '</div>';
+}
+// Rij voor de dag-tijdlijn.
+function timelineRowHTML(ev,k){
+  var ppl=sortPersons(ev.persons),single=ppl.length===1;
+  return '<div class="timeline-row" onclick="editEvent(event,\''+ev.rep.id+'\',\''+k+'\')">'+
+    '<div class="timeline-time">'+(ev.time?startTime(ev.time):'<span style="font-size:9px;color:var(--muted2);font-weight:600">—</span>')+'</div>'+
+    '<div class="timeline-ev event-chip '+(single?('bg-'+ppl[0]):'multi')+(ev.fromGcal?' gcal':'')+'">'+
+      (ev.fromGcal?'<i class="ti ti-calendar"></i> ':'')+
+      (single?'':peopleDots(ppl))+
+      '<span style="font-weight:600">'+ev.title+'</span>'+
+      '<span class="timeline-person">'+ppl.map(function(p){return '<span style="color:var(--'+p+'-dark)">'+NAMES[p]+'</span>';}).join(', ')+'</span>'+
+    '</div>'+
+  '</div>';
 }
 
 // ── Wake Lock ──
@@ -844,25 +916,27 @@ function render(){if(view==='week')renderWeek();else if(view==='day')renderDay()
 function renderWeek(){
   var dates=getWeekDates(weekOffset);
   document.getElementById('periodLabel').textContent=dates[0].toLocaleDateString('nl-NL',{month:'short',day:'numeric'})+' – '+dates[6].toLocaleDateString('nl-NL',{month:'short',day:'numeric'});
-  var cols='52px repeat(7,1fr)';
+  var cols='62px repeat(7,1fr)';
+  // Per dag de samengevoegde, op tijd gesorteerde afspraken
+  var keys=[], dayEvs=[];
+  for(var i=0;i<dates.length;i++){ var kk=iso(dates[i]); keys.push(kk); dayEvs.push(sortEvents(getMergedEventsForDate(kk))); }
   var h='<div class="grid-wrapper"><div class="day-headers" style="grid-template-columns:'+cols+'"><div class="day-header"></div>';
-  for(var i=0;i<dates.length;i++){var bdays=birthdaysOn(iso(dates[i]));h+='<div class="day-header'+(isToday(dates[i])?' today':'')+'">'+DAYS[i]+'<span>'+dates[i].getDate()+'</span>'+(bdays.length?'<div style="font-size:10px" title="'+bdays.map(function(b){return b.name;}).join(', ')+'">🎂</div>':'')+'</div>';}
+  for(var i2=0;i2<dates.length;i2++){var bdays=birthdaysOn(iso(dates[i2]));h+='<div class="day-header'+(isToday(dates[i2])?' today':'')+'">'+DAYS[i2]+'<span>'+dates[i2].getDate()+'</span>'+(bdays.length?'<div style="font-size:10px" title="'+bdays.map(function(b){return b.name;}).join(', ')+'">🎂</div>':'')+'</div>';}
   h+='</div>';
-  // Eén gecombineerde rij: alle personen samen, op tijd gesorteerd
-  h+='<div class="combined-row" style="grid-template-columns:'+cols+'"><div class="row-label" style="justify-content:center;align-items:flex-start;padding-top:9px" title="Op tijd gesorteerd"><i class="ti ti-clock-hour-3" style="color:var(--muted);font-size:15px"></i></div>';
-  for(var di=0;di<dates.length;di++){
-    var k=iso(dates[di]),evs=sortEvents(getEventsForDate(k));
-    h+='<div class="day-cell'+(isToday(dates[di])?' today-col':'')+'" onclick="openEventModal(null,\''+k+'\',event)">';
-    for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];
-      h+='<div class="event-chip bg-'+ev.person+(ev.fromGcal?' gcal':'')+'" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')" title="'+(ev.time?ev.time+' ':'')+ev.title+' — '+NAMES[ev.person]+'">'+
-          (ev.time?'<span class="ev-time">'+startTime(ev.time)+'</span>':'<span class="ev-allday"><i class="ti ti-point-filled" style="font-size:8px"></i></span>')+
-          '<span class="ev-name" style="color:var(--'+ev.person+'-dark)">'+NAMES[ev.person].charAt(0)+'</span>'+
-          trunc(ev.title,13)+
-        '</div>';
+  // Tijdbanden (ochtend/middag/avond), 'hele dag' alleen tonen als er afspraken zonder tijd zijn
+  var hasAllday=dayEvs.some(function(list){return list.some(function(ev){return eventBand(ev)==='allday';});});
+  BANDS.forEach(function(band){
+    if(band.key==='allday' && !hasAllday) return;
+    h+='<div class="band-row" style="grid-template-columns:'+cols+'"><div class="band-label"><i class="ti '+band.icon+'"></i><span>'+band.label+'</span>'+(band.range?'<span class="band-range">'+band.range+'</span>':'')+'</div>';
+    for(var di=0;di<dates.length;di++){
+      var k=keys[di];
+      var bevs=dayEvs[di].filter(function(ev){return eventBand(ev)===band.key;});
+      h+='<div class="band-cell'+(isToday(dates[di])?' today-col':'')+'" onclick="openEventModal(null,\''+k+'\',event)">';
+      for(var ei=0;ei<bevs.length;ei++){ h+=eventChipHTML(bevs[ei],k); }
+      h+='</div>';
     }
-    h+='<button class="add-btn"><i class="ti ti-plus"></i></button></div>';
-  }
-  h+='</div>';
+    h+='</div>';
+  });
   h+='<div class="dinner-row" style="grid-template-columns:'+cols+'"><div class="dinner-label" style="padding:8px 4px;justify-content:center" title="Diner"><i class="ti ti-soup"></i></div>';
   for(var di2=0;di2<dates.length;di2++){var dk=iso(dates[di2]),dn=dinners[dk]||{};h+='<div class="dinner-cell'+(isToday(dates[di2])?' today-col':'')+'" onclick="openDinnerModal(\''+dk+'\')">'+(dn.meal?'<span class="meal">'+trunc(dn.meal,16)+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" title="Bekijk recept" style="color:var(--abel)"><i class="ti ti-external-link" style="font-size:9px"></i></a>':'')+'</span>':'<span class="no-meal">Maaltijd toevoegen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'"><i class="ti ti-chef-hat"></i>'+NAMES[dn.cook]+'</div>':'')+'</div>';}
   h+='</div></div>';
@@ -883,21 +957,15 @@ function renderDay(){
     if(bdays.length)h+='<div style="font-size:13px;font-weight:500">🎂 '+bdays.map(function(b){return b.name;}).join(', ')+'</div>';
     h+='</div>';
   }
-  var evs=sortEvents(getEventsForDate(k));
+  var evs=sortEvents(getMergedEventsForDate(k));
   h+='<div class="day-view-grid">';
-  if(!evs.length){
-    h+='<div style="padding:18px;text-align:center;color:var(--muted);font-size:12px;font-style:italic">Geen afspraken vandaag</div>';
-  }
-  for(var ei=0;ei<evs.length;ei++){var ev=evs[ei];
-    h+='<div class="timeline-row" onclick="editEvent(event,\''+ev.id+'\',\''+k+'\')">'+
-        '<div class="timeline-time">'+(ev.time?startTime(ev.time):'<span style="font-size:9px;color:var(--muted2);font-weight:600">hele dag</span>')+'</div>'+
-        '<div class="timeline-ev event-chip bg-'+ev.person+(ev.fromGcal?' gcal':'')+'">'+
-          (ev.fromGcal?'<i class="ti ti-calendar"></i> ':'')+
-          '<span style="font-weight:600">'+ev.title+'</span>'+
-          '<span class="timeline-person" style="color:var(--'+ev.person+'-dark)">'+NAMES[ev.person]+'</span>'+
-        '</div>'+
-      '</div>';
-  }
+  BANDS.forEach(function(band){
+    var bevs=evs.filter(function(ev){return eventBand(ev)===band.key;});
+    if(band.key==='allday' && !bevs.length) return; // 'hele dag' alleen tonen als er zulke afspraken zijn
+    h+='<div class="timeline-band"><i class="ti '+band.icon+'"></i> '+band.label+(band.range?' <span style="color:var(--muted2);font-weight:600">· '+band.range+'</span>':'')+'</div>';
+    if(!bevs.length){ h+='<div class="timeline-empty">Geen afspraken</div>'; }
+    for(var ei=0;ei<bevs.length;ei++){ h+=timelineRowHTML(bevs[ei],k); }
+  });
   h+='<div class="timeline-row" onclick="openEventModal(null,\''+k+'\',event)"><div class="timeline-time"><i class="ti ti-plus" style="color:var(--muted);font-size:13px"></i></div><div style="padding:8px 11px;font-size:12px;color:var(--muted)">Afspraak toevoegen</div></div>';
   h+='<div class="timeline-row" style="background:rgba(201,168,107,.05)" onclick="openDinnerModal(\''+k+'\')"><div class="timeline-time"><i class="ti ti-soup" style="color:var(--abel);font-size:15px"></i></div><div style="padding:8px 11px">'+(dn.meal?'<span style="font-size:13px;font-weight:500">'+dn.meal+(dn.recipe?' <a href="'+dn.recipe+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--abel);font-size:11px;font-weight:600"><i class="ti ti-external-link"></i> recept</a>':'')+'</span>':'<span style="font-size:11px;color:var(--muted);font-style:italic">Tik om diner in te stellen…</span>')+(dn.cook?'<div class="cook-badge bg-'+dn.cook+'" style="margin-top:4px;font-size:10px;padding:3px 8px"><i class="ti ti-chef-hat"></i> '+NAMES[dn.cook]+' kookt vanavond</div>':'')+'</div></div>';
   h+='</div>';
@@ -910,7 +978,7 @@ function renderMonth(){
   var h='<div class="month-grid"><div class="month-weekdays">';
   for(var i=0;i<DAYS.length;i++)h+='<div class="month-weekday">'+DAYS[i]+'</div>';
   h+='</div><div class="month-cells">';
-  for(var di=0;di<md.dates.length;di++){var d=md.dates[di],k=iso(d),inM=d.getMonth()===md.month.getMonth(),dn=dinners[k]||{},dayEvs=getEventsForDate(k),bdays=birthdaysOn(k);h+='<div class="month-cell'+((!inM)?' other-month':'')+(isToday(d)?' today-col':'')+'" onclick="goToDay(\''+k+'\')"><div class="month-day-num">'+d.getDate()+'</div>';if(bdays.length)h+='<div class="month-ev-chip" style="background:#fff0d4;color:#7a4f00">🎂 '+trunc(bdays[0].name,10)+'</div>';for(var pi=0;pi<PERSONS.length;pi++){var pevs=dayEvs.filter(function(e){return e.person===PERSONS[pi];});for(var ei=0;ei<pevs.length;ei++)h+='<div class="month-ev-chip bg-'+PERSONS[pi]+'">'+trunc(pevs[ei].title,12)+'</div>';}if(dn.meal)h+='<div class="month-dinner"><i class="ti ti-soup" style="font-size:8px"></i>'+trunc(dn.meal,12)+'</div>';h+='</div>';}
+  for(var di=0;di<md.dates.length;di++){var d=md.dates[di],k=iso(d),inM=d.getMonth()===md.month.getMonth(),dn=dinners[k]||{},dayEvs=sortEvents(getMergedEventsForDate(k)),bdays=birthdaysOn(k);h+='<div class="month-cell'+((!inM)?' other-month':'')+(isToday(d)?' today-col':'')+'" onclick="goToDay(\''+k+'\')"><div class="month-day-num">'+d.getDate()+'</div>';if(bdays.length)h+='<div class="month-ev-chip" style="background:#fff0d4;color:#7a4f00">🎂 '+trunc(bdays[0].name,10)+'</div>';for(var mi=0;mi<dayEvs.length;mi++){var me=dayEvs[mi],mp=sortPersons(me.persons);if(mp.length===1){h+='<div class="month-ev-chip bg-'+mp[0]+'">'+trunc(me.title,12)+'</div>';}else{h+='<div class="month-ev-chip" style="background:var(--card2);border:1px solid var(--border2);display:flex;align-items:center;gap:3px">'+mp.map(function(p){return '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--'+p+'-dark);flex-shrink:0"></span>';}).join('')+'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+trunc(me.title,9)+'</span></div>';}}if(dn.meal)h+='<div class="month-dinner"><i class="ti ti-soup" style="font-size:8px"></i>'+trunc(dn.meal,12)+'</div>';h+='</div>';}
   h+='</div></div>';
   document.getElementById('calBody').innerHTML=h;
 }
