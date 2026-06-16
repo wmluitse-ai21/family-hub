@@ -188,6 +188,12 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 .timeline-band{padding:7px 12px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
 .timeline-band i{font-size:15px}
 .timeline-empty{padding:6px 14px;font-size:11px;color:var(--muted2);border-bottom:1px solid var(--border)}
+.timer-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--border);border-radius:11px;margin-bottom:8px;background:var(--bg)}
+.timer-row.done{border-color:var(--abel-dark);background:var(--abel-light)}
+.timer-row .t-rem{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;min-width:62px}
+.timer-row .t-lbl{flex:1;min-width:0;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timer-row .t-btn{font-size:17px;cursor:pointer;color:var(--muted);padding:2px}
+.timer-row .t-btn:hover{color:var(--text)}
 .timeline-row{display:grid;grid-template-columns:74px 1fr;border-bottom:1px solid var(--border);align-items:center;min-height:46px;cursor:pointer;transition:background .12s}
 .timeline-row:last-child{border-bottom:none}
 .timeline-row:hover{background:var(--card2)}
@@ -220,7 +226,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
     <button class="hdr-btn google" id="gcalBtn" onclick="connectGoogle()">
       <i class="ti ti-calendar"></i><span id="gcalLbl">Google Agenda</span>
     </button>
-    <button class="hdr-btn" onclick="openTimerModal()" title="Timer"><i class="ti ti-alarm"></i> Timer</button>
+    <button class="hdr-btn" id="timerBtn" onclick="openTimerModal()" title="Timers"><i class="ti ti-alarm"></i> <span id="timerBtnLbl">Timer</span></button>
     <button class="hdr-btn" id="fsBtn" onclick="toggleFullscreen()" title="Volledig scherm">
       <i class="ti ti-maximize" id="fsIcon"></i>
     </button>
@@ -307,7 +313,7 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 
 <div class="modal-overlay" id="taskModal">
   <div class="modal">
-    <h2><i class="ti ti-circle-plus"></i> Taak toevoegen</h2>
+    <h2 id="taskModalHdr"><i class="ti ti-circle-plus"></i> Taak toevoegen</h2>
     <label>Voor wie? (kies één of meer)</label>
     <div id="taskPersonChips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:2px"></div>
     <label>Taak</label>
@@ -315,6 +321,19 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('taskModal')">Annuleren</button>
       <button class="btn-save" onclick="saveTask()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="shopEditModal">
+  <div class="modal">
+    <h2><i class="ti ti-pencil"></i> Boodschap bewerken</h2>
+    <label>Boodschap</label>
+    <input type="text" id="shopEditTitle" placeholder="bijv. Pindakaas"/>
+    <div class="modal-btns">
+      <button class="btn-delete" onclick="deleteShopFromEdit()"><i class="ti ti-trash"></i></button>
+      <button class="btn-cancel" onclick="closeModal('shopEditModal')">Annuleren</button>
+      <button class="btn-save" onclick="saveShopEdit()">Opslaan</button>
     </div>
   </div>
 </div>
@@ -337,24 +356,27 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 </div>
 
 <div class="modal-overlay" id="timerModal">
-  <div class="modal" style="width:330px;text-align:center">
-    <h2 style="justify-content:center"><i class="ti ti-alarm"></i> Timer</h2>
-    <div id="timerDisplay" style="font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;margin:4px 0 14px;letter-spacing:.02em">05:00</div>
-    <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
-      <button class="hdr-btn" onclick="timerSetPreset(1)">1 min</button>
-      <button class="hdr-btn" onclick="timerSetPreset(3)">3 min</button>
-      <button class="hdr-btn" onclick="timerSetPreset(5)">5 min</button>
-      <button class="hdr-btn" onclick="timerSetPreset(10)">10 min</button>
-      <button class="hdr-btn" onclick="timerSetPreset(15)">15 min</button>
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:4px;font-size:12px;color:var(--muted)">
-      <input id="timerMin" type="number" min="0" max="180" value="5" style="width:62px;text-align:center"/> min
-      <input id="timerSec" type="number" min="0" max="59" value="0" style="width:62px;text-align:center"/> sec
-    </div>
-    <div class="modal-btns" style="justify-content:center">
-      <button class="btn-cancel" onclick="timerReset()">Reset</button>
-      <button class="btn-save" id="timerStartBtn" onclick="timerStartPause()" style="min-width:92px">Start</button>
-      <button class="btn-cancel" onclick="closeModal('timerModal')">Sluiten</button>
+  <div class="modal" style="width:360px">
+    <h2 style="justify-content:center"><i class="ti ti-alarm"></i> Timers</h2>
+    <div id="timerList" style="margin-bottom:6px"></div>
+    <div style="border-top:1px solid var(--border2);padding-top:14px">
+      <div id="timerPreview" style="font-size:42px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;margin-bottom:10px;letter-spacing:.02em">00:00</div>
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">
+        <button class="hdr-btn" onclick="timerSetPreset(1)">1 min</button>
+        <button class="hdr-btn" onclick="timerSetPreset(3)">3 min</button>
+        <button class="hdr-btn" onclick="timerSetPreset(5)">5 min</button>
+        <button class="hdr-btn" onclick="timerSetPreset(10)">10 min</button>
+        <button class="hdr-btn" onclick="timerSetPreset(15)">15 min</button>
+      </div>
+      <input type="text" id="timerLabel" placeholder="Naam (optioneel, bijv. Ei koken)" style="width:100%;margin-bottom:8px"/>
+      <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:4px;font-size:12px;color:var(--muted)">
+        <input id="timerMin" type="number" min="0" max="180" value="0" oninput="updateAddPreview()" style="width:62px;text-align:center"/> min
+        <input id="timerSec" type="number" min="0" max="59" value="0" oninput="updateAddPreview()" style="width:62px;text-align:center"/> sec
+      </div>
+      <div class="modal-btns" style="justify-content:center">
+        <button class="btn-cancel" onclick="closeModal('timerModal')">Sluiten</button>
+        <button class="btn-save" onclick="timerAdd()" style="min-width:110px"><i class="ti ti-plus"></i> Start timer</button>
+      </div>
     </div>
   </div>
 </div>
@@ -860,17 +882,48 @@ function iso(d){return d.toISOString().slice(0,10);}
 function isToday(d){var t=new Date();return d.getDate()===t.getDate()&&d.getMonth()===t.getMonth()&&d.getFullYear()===t.getFullYear();}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 
-// ── Weer (Open-Meteo, gratis, geen sleutel) — Voorburg ─────────────────────
-var weatherCache = {};
-var WEATHER_CODES = {0:'☀️ Helder',1:'🌤️ Licht bewolkt',2:'⛅ Half bewolkt',3:'☁️ Bewolkt',45:'🌫️ Mist',48:'🌫️ Mist',51:'🌦️ Motregen',53:'🌦️ Motregen',55:'🌦️ Motregen',61:'🌧️ Regen',63:'🌧️ Regen',65:'🌧️ Zware regen',71:'🌨️ Sneeuw',73:'🌨️ Sneeuw',75:'❄️ Sneeuw',80:'🌦️ Buien',81:'🌦️ Buien',82:'⛈️ Zware buien',95:'⛈️ Onweer',96:'⛈️ Onweer'};
+// ── Weer — Buienradar (met Open-Meteo als reserve) — Voorburg ──────────────
+var weatherCache = {}; // { 'YYYY-MM-DD': {max,min,icon} }
+var WEATHER_CODES = {0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌦️',82:'⛈️',95:'⛈️',96:'⛈️'};
+
 async function fetchWeather(){
+  var ok=await fetchWeatherBuienradar();
+  if(!ok) await fetchWeatherOpenMeteo();
+}
+
+// Kies een passend weericoon op basis van regen-/zonkans van Buienradar.
+function buienradarIcon(day){
+  var rain=(day.rainChance!=null?day.rainChance:0), sun=(day.sunChance!=null?day.sunChance:0);
+  if(rain>=70) return '🌧️';
+  if(rain>=40) return '🌦️';
+  if(sun>=60) return '☀️';
+  if(sun>=30) return '⛅';
+  return '☁️';
+}
+async function fetchWeatherBuienradar(){
+  try{
+    var r=await fetch('https://data.buienradar.nl/2.0/feed/json');
+    if(!r.ok) return false;
+    var d=await r.json();
+    var fc=d && d.forecast && d.forecast.fivedayforecast;
+    if(!fc || !fc.length) return false;
+    fc.forEach(function(day){
+      var key=(''+(day.day||'')).slice(0,10);
+      if(!key) return;
+      weatherCache[key]={max:Math.round(day.maxtemperature),min:Math.round(day.mintemperature),icon:buienradarIcon(day)};
+    });
+    render(); renderWeatherCard();
+    return true;
+  }catch(e){ return false; }
+}
+async function fetchWeatherOpenMeteo(){
   try{
     var r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=52.07&longitude=4.36&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe%2FAmsterdam&forecast_days=16');
     if(!r.ok)return;
     var d=await r.json();
     if(d.daily){
       for(var i=0;i<d.daily.time.length;i++){
-        weatherCache[d.daily.time[i]]={code:d.daily.weather_code[i],max:Math.round(d.daily.temperature_2m_max[i]),min:Math.round(d.daily.temperature_2m_min[i])};
+        weatherCache[d.daily.time[i]]={max:Math.round(d.daily.temperature_2m_max[i]),min:Math.round(d.daily.temperature_2m_min[i]),icon:WEATHER_CODES[d.daily.weather_code[i]]||'☁️'};
       }
       render();
       renderWeatherCard();
@@ -880,8 +933,7 @@ async function fetchWeather(){
 function weatherFor(dateKey){
   var w=weatherCache[dateKey];
   if(!w)return '';
-  var desc=WEATHER_CODES[w.code]||'';
-  return desc+' '+w.max+'° / '+w.min+'°';
+  return (w.icon||'')+' '+w.max+'° / '+w.min+'°';
 }
 
 function renderWeatherCard(){
@@ -896,7 +948,7 @@ function renderWeatherCard(){
     if(!w)continue;
     any=true;
     var dayLabel=i===0?'Vandaag':(i===1?'Morgen':DAYS[(d.getDay()+6)%7]+' '+d.getDate());
-    var icon=(WEATHER_CODES[w.code]||'').split(' ')[0];
+    var icon=w.icon||'';
     h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0'+(i<4?';border-bottom:1px solid var(--border)':'')+'">'+
         '<span style="font-size:11px;font-weight:500;width:64px">'+dayLabel+'</span>'+
         '<span style="font-size:16px">'+icon+'</span>'+
@@ -1056,12 +1108,12 @@ function renderTasks(){
     var badges='';
     (t.assignees||[]).forEach(function(p){ badges+='<span class="assignee-dot" style="background:var(--'+p+'-dark)" title="'+NAMES[p]+'">'+NAMES[p].charAt(0)+'</span>'; });
     h+='<div class="task-item" style="justify-content:space-between;align-items:center">'+
-        '<div style="display:flex;align-items:flex-start;gap:6px;flex:1;min-width:0" onclick="toggleTask(\''+t.id+'\')">'+
-          '<div class="task-check'+(t.done?' done':'')+'">'+(t.done?'<i class="ti ti-check"></i>':'')+'</div>'+
-          '<span class="task-text'+(t.done?' done':'')+'" style="flex:1">'+t.text+'</span>'+
+        '<div style="display:flex;align-items:flex-start;gap:6px;flex:1;min-width:0">'+
+          '<div class="task-check'+(t.done?' done':'')+'" onclick="toggleTask(\''+t.id+'\')">'+(t.done?'<i class="ti ti-check"></i>':'')+'</div>'+
+          '<span class="task-text'+(t.done?' done':'')+'" style="flex:1;cursor:pointer" onclick="openTaskEdit(\''+t.id+'\')">'+t.text+'</span>'+
         '</div>'+
         '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'+
-          '<div style="display:flex" title="Toegewezen aan">'+badges+'</div>'+
+          '<div style="display:flex;cursor:pointer" title="Bewerken" onclick="openTaskEdit(\''+t.id+'\')">'+badges+'</div>'+
           '<i class="ti ti-x" style="font-size:11px;color:var(--muted);cursor:pointer" onclick="removeTask(\''+t.id+'\')"></i>'+
         '</div>'+
       '</div>';
@@ -1075,7 +1127,7 @@ function renderShopping(){
   if(!shopping.length){h='<p style="font-size:10px;color:var(--muted);font-style:italic">Nog niets op de lijst</p>';}
   for(var i=0;i<shopping.length;i++){
     var it=shopping[i];
-    h+='<div class="task-item" style="justify-content:space-between"><div style="display:flex;align-items:flex-start;gap:5px;flex:1" onclick="toggleShop(\''+it.id+'\')"><div class="task-check'+(it.done?' done':'')+'">'+(it.done?'<i class="ti ti-check"></i>':'')+'</div><span class="task-text'+(it.done?' done':'')+'">'+it.text+'</span></div><i class="ti ti-x" style="font-size:11px;color:var(--muted);cursor:pointer" onclick="removeShop(\''+it.id+'\')"></i></div>';
+    h+='<div class="task-item" style="justify-content:space-between"><div style="display:flex;align-items:flex-start;gap:5px;flex:1;min-width:0"><div class="task-check'+(it.done?' done':'')+'" onclick="toggleShop(\''+it.id+'\')">'+(it.done?'<i class="ti ti-check"></i>':'')+'</div><span class="task-text'+(it.done?' done':'')+'" style="cursor:pointer;flex:1" onclick="openShopEdit(\''+it.id+'\')">'+it.text+'</span></div><i class="ti ti-x" style="font-size:11px;color:var(--muted);cursor:pointer" onclick="removeShop(\''+it.id+'\')"></i></div>';
   }
   document.getElementById('shoppingList').innerHTML=h;
 }
@@ -1095,6 +1147,26 @@ window.toggleShop=async function(id){
 window.removeShop=async function(id){
   shopping=shopping.filter(function(x){return x.id!==id;});
   await saveShopping();
+};
+var editingShopId=null;
+window.openShopEdit=function(id){
+  var it=shopping.find(function(x){return x.id===id;});
+  if(!it)return;
+  editingShopId=id;
+  document.getElementById('shopEditTitle').value=it.text;
+  document.getElementById('shopEditModal').classList.add('open');
+  setTimeout(function(){document.getElementById('shopEditTitle').focus();},100);
+};
+window.saveShopEdit=async function(){
+  var text=document.getElementById('shopEditTitle').value.trim();
+  var it=shopping.find(function(x){return x.id===editingShopId;});
+  if(it&&text){it.text=text;await saveShopping();}
+  closeModal('shopEditModal');editingShopId=null;
+};
+window.deleteShopFromEdit=async function(){
+  shopping=shopping.filter(function(x){return x.id!==editingShopId;});
+  closeModal('shopEditModal');editingShopId=null;
+  await saveShopping();toast('Boodschap verwijderd');
 };
 window.shareToBring=function(){
   var items=shopping.filter(function(x){return !x.done;}).map(function(x){return x.text;});
@@ -1203,8 +1275,26 @@ function renderTaskChips(){
   el.innerHTML=h;
 }
 window.toggleTaskPerson=function(p){ taskSelected[p]=!taskSelected[p]; renderTaskChips(); };
-window.openTaskModal=function(person){taskSelected={};var pre=person||(taskFilter&&taskFilter!=='all'?taskFilter:null);if(pre)taskSelected[pre]=true;renderTaskChips();document.getElementById('taskTitle').value='';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
-window.saveTask=async function(){var text=document.getElementById('taskTitle').value.trim();if(!text)return;var persons=PERSONS.filter(function(p){return taskSelected[p];});if(!persons.length){toast('Kies minstens één persoon');return;}var newTask={id:uid(),text:text,done:false,assignees:persons,gtaskIds:{}};if(isGcalConnected()){for(var i=0;i<persons.length;i++){var gid=await pushTaskToGoogle(text,persons[i]);if(gid)newTask.gtaskIds[persons[i]]=gid;}}tasks.push(newTask);closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');};
+var editingTaskId=null;
+window.openTaskModal=function(person){editingTaskId=null;taskSelected={};var pre=person||(taskFilter&&taskFilter!=='all'?taskFilter:null);if(pre)taskSelected[pre]=true;renderTaskChips();document.getElementById('taskTitle').value='';document.getElementById('taskModalHdr').innerHTML='<i class="ti ti-circle-plus"></i> Taak toevoegen';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
+window.openTaskEdit=function(id){var t=tasks.find(function(x){return x.id===id;});if(!t)return;editingTaskId=id;taskSelected={};(t.assignees||[]).forEach(function(p){taskSelected[p]=true;});renderTaskChips();document.getElementById('taskTitle').value=t.text;document.getElementById('taskModalHdr').innerHTML='<i class="ti ti-pencil"></i> Taak bewerken';document.getElementById('taskModal').classList.add('open');setTimeout(function(){document.getElementById('taskTitle').focus();},100);};
+window.saveTask=async function(){
+  var text=document.getElementById('taskTitle').value.trim();if(!text)return;
+  var persons=PERSONS.filter(function(p){return taskSelected[p];});if(!persons.length){toast('Kies minstens één persoon');return;}
+  if(editingTaskId){
+    var t=tasks.find(function(x){return x.id===editingTaskId;});
+    if(t){
+      // Google Tasks opnieuw uitlijnen: oude weghalen, nieuwe aanmaken met (nieuwe) tekst
+      if(isGcalConnected()&&t.gtaskIds){ for(var op in t.gtaskIds){ deleteGoogleTask(t.gtaskIds[op],op); } }
+      t.text=text; t.assignees=persons; t.gtaskIds={};
+      if(isGcalConnected()){ for(var i=0;i<persons.length;i++){ var gid=await pushTaskToGoogle(text,persons[i]); if(gid){ t.gtaskIds[persons[i]]=gid; if(t.done) updateGoogleTaskStatus(gid,true,persons[i]); } } }
+    }
+    editingTaskId=null;closeModal('taskModal');await saveTasks();toast('Taak bijgewerkt');return;
+  }
+  var newTask={id:uid(),text:text,done:false,assignees:persons,gtaskIds:{}};
+  if(isGcalConnected()){for(var j=0;j<persons.length;j++){var ngid=await pushTaskToGoogle(text,persons[j]);if(ngid)newTask.gtaskIds[persons[j]]=ngid;}}
+  tasks.push(newTask);closeModal('taskModal');await saveTasks();toast('Taak toegevoegd');
+};
 window.toggleTask=async function(id){var t=tasks.find(function(x){return x.id===id;});if(!t)return;t.done=!t.done;t.doneDate=t.done?iso(new Date()):null;if(isGcalConnected()&&t.gtaskIds){for(var p in t.gtaskIds){updateGoogleTaskStatus(t.gtaskIds[p],t.done,p);}}await saveTasks();};
 window.removeTask=async function(id){var t=tasks.find(function(x){return x.id===id;});if(t&&isGcalConnected()&&t.gtaskIds){for(var p in t.gtaskIds){deleteGoogleTask(t.gtaskIds[p],p);}}tasks=tasks.filter(function(x){return x.id!==id;});await saveTasks();toast('Taak verwijderd');};
 
@@ -1222,7 +1312,7 @@ function birthdaysOn(dateKey){
 
 window.closeModal=function(id){document.getElementById(id).classList.remove('open');editingEvent=null;editingCell=null;editingDinnerKey=null;editingBirthday=null;};
 document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)closeModal(m.id);});});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(function(m){closeModal(m.id);});if(e.key==='Enter'){if(document.getElementById('eventModal').classList.contains('open'))saveEvent();else if(document.getElementById('dinnerModal').classList.contains('open'))saveDinner();else if(document.getElementById('taskModal').classList.contains('open'))saveTask();}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(function(m){closeModal(m.id);});if(e.key==='Enter'){if(document.getElementById('eventModal').classList.contains('open'))saveEvent();else if(document.getElementById('dinnerModal').classList.contains('open'))saveDinner();else if(document.getElementById('taskModal').classList.contains('open'))saveTask();else if(document.getElementById('shopEditModal').classList.contains('open'))saveShopEdit();}});
 
 function trunc(s,n){return s&&s.length>n?s.slice(0,n-1)+'…':s;}
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2800);}
@@ -1259,45 +1349,86 @@ function updateClock(){
 setInterval(updateClock,1000);
 updateClock();
 
-// ── Timer ──
-var timerRemaining=0, timerRunning=false, timerInterval=null, timerEndAt=0;
+// ── Timers (meerdere tegelijk) ──
+var timers=[]; // {id,label,remaining,total,running,endAt,done}
+var timersTick=null;
 function fmtMMSS(s){var m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
-function updateTimerDisplay(){var el=document.getElementById('timerDisplay');if(el)el.textContent=fmtMMSS(timerRemaining);}
-function stopTimerTick(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
-window.openTimerModal=function(){
-  document.getElementById('timerModal').classList.add('open');
-  if(!timerRunning&&timerRemaining<=0){var m=parseInt(document.getElementById('timerMin').value)||0,s=parseInt(document.getElementById('timerSec').value)||0;timerRemaining=m*60+s;}
-  updateTimerDisplay();
-};
+function ensureTimersTick(){ if(!timersTick) timersTick=setInterval(tickTimers,250); }
+function tickTimers(){
+  var anyRunning=false;
+  timers.forEach(function(t){
+    if(t.running){
+      t.remaining=Math.max(0,Math.round((t.endAt-Date.now())/1000));
+      if(t.remaining<=0){ t.running=false; t.done=true; timerFired(t); }
+      else anyRunning=true;
+    }
+  });
+  renderTimers();
+  updateTimerBtn(anyRunning);
+  if(!anyRunning){ clearInterval(timersTick); timersTick=null; }
+}
+function updateTimerBtn(anyRunning){
+  var lbl=document.getElementById('timerBtnLbl'); if(!lbl)return;
+  if(!anyRunning){ lbl.textContent='Timer'; return; }
+  var soonest=null;
+  timers.forEach(function(t){ if(t.running && (soonest===null || t.remaining<soonest)) soonest=t.remaining; });
+  lbl.textContent = soonest!==null ? fmtMMSS(soonest) : 'Timer';
+}
+function updateAddPreview(){
+  var m=parseInt(document.getElementById('timerMin').value)||0, s=parseInt(document.getElementById('timerSec').value)||0;
+  var el=document.getElementById('timerPreview'); if(el)el.textContent=fmtMMSS(m*60+s);
+}
+window.openTimerModal=function(){ document.getElementById('timerModal').classList.add('open'); updateAddPreview(); renderTimers(); };
 window.timerSetPreset=function(mins){
-  stopTimerTick();timerRunning=false;timerRemaining=mins*60;
   document.getElementById('timerMin').value=mins;document.getElementById('timerSec').value=0;
-  document.getElementById('timerStartBtn').textContent='Start';
-  updateTimerDisplay();
+  updateAddPreview();
 };
-window.timerStartPause=function(){
-  if(timerRunning){ stopTimerTick();timerRunning=false;document.getElementById('timerStartBtn').textContent='Hervat';return; }
-  if(timerRemaining<=0){var m=parseInt(document.getElementById('timerMin').value)||0,s=parseInt(document.getElementById('timerSec').value)||0;timerRemaining=m*60+s;}
-  if(timerRemaining<=0){toast('Stel eerst een tijd in');return;}
-  timerRunning=true;document.getElementById('timerStartBtn').textContent='Pauze';
-  timerEndAt=Date.now()+timerRemaining*1000;
-  stopTimerTick();
-  timerInterval=setInterval(function(){
-    timerRemaining=Math.max(0,Math.round((timerEndAt-Date.now())/1000));
-    updateTimerDisplay();
-    if(timerRemaining<=0){ stopTimerTick();timerRunning=false;document.getElementById('timerStartBtn').textContent='Start';timerFinished(); }
-  },200);
+window.timerAdd=function(){
+  var m=parseInt(document.getElementById('timerMin').value)||0, s=parseInt(document.getElementById('timerSec').value)||0;
+  var secs=m*60+s;
+  if(secs<=0){ toast('Stel eerst een tijd in'); return; }
+  var label=(document.getElementById('timerLabel').value||'').trim();
+  timers.push({id:uid(),label:label,remaining:secs,total:secs,running:true,endAt:Date.now()+secs*1000,done:false});
+  document.getElementById('timerMin').value=0;document.getElementById('timerSec').value=0;document.getElementById('timerLabel').value='';
+  updateAddPreview();
+  ensureTimersTick();
+  renderTimers();
 };
-window.timerReset=function(){
-  stopTimerTick();timerRunning=false;timerRemaining=0;
-  document.getElementById('timerStartBtn').textContent='Start';
-  updateTimerDisplay();
+window.timerToggle=function(id){
+  var t=timers.find(function(x){return x.id===id;}); if(!t)return;
+  if(t.done){ t.remaining=t.total;t.done=false; }
+  if(t.running){ t.running=false; }
+  else { if(t.remaining<=0){t.remaining=t.total;} t.running=true; t.endAt=Date.now()+t.remaining*1000; ensureTimersTick(); }
+  renderTimers();
 };
-function timerFinished(){
-  toast('⏰ Timer afgelopen!');
+window.timerResetOne=function(id){
+  var t=timers.find(function(x){return x.id===id;}); if(!t)return;
+  t.running=false;t.done=false;t.remaining=t.total;
+  renderTimers();
+};
+window.timerRemove=function(id){
+  timers=timers.filter(function(x){return x.id!==id;});
+  renderTimers(); updateTimerBtn(timers.some(function(t){return t.running;}));
+};
+function renderTimers(){
+  var el=document.getElementById('timerList'); if(!el)return;
+  if(!timers.length){ el.innerHTML=''; return; }
+  var h='';
+  timers.forEach(function(t){
+    h+='<div class="timer-row'+(t.done?' done':'')+'">'+
+        '<div class="t-rem">'+(t.done?'Klaar!':fmtMMSS(t.remaining))+'</div>'+
+        '<div class="t-lbl">'+(t.label||'Timer')+'</div>'+
+        (t.done
+          ? '<i class="ti ti-rotate t-btn" title="Opnieuw" onclick="timerResetOne(\''+t.id+'\')"></i>'
+          : '<i class="ti ti-'+(t.running?'player-pause':'player-play')+' t-btn" onclick="timerToggle(\''+t.id+'\')"></i><i class="ti ti-rotate t-btn" title="Reset" onclick="timerResetOne(\''+t.id+'\')"></i>')+
+        '<i class="ti ti-x t-btn" title="Verwijderen" onclick="timerRemove(\''+t.id+'\')"></i>'+
+      '</div>';
+  });
+  el.innerHTML=h;
+}
+function timerFired(t){
+  toast('⏰ '+(t.label?t.label:'Timer')+' afgelopen!');
   playTimerBeep();
-  var el=document.getElementById('timerDisplay');
-  if(el){var n=0;var fl=setInterval(function(){el.style.color=(n%2?'':'var(--abel-dark)');n++;if(n>9){clearInterval(fl);el.style.color='';}},300);}
 }
 function playTimerBeep(){
   try{
@@ -1858,8 +1989,8 @@ if(!IS_SILENT_FRAME){
   fetchWeather();
   startSpotify();
   if(isGcalConnected()){fetchAllGcalEvents();fetchGoogleTasks();}
-  // ververs weer elke 3 uur
-  setInterval(fetchWeather,3*3600*1000);
+  // ververs weer elke 30 minuten
+  setInterval(fetchWeather,30*60*1000);
 }
 </script>
 </body>
