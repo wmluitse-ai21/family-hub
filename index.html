@@ -277,19 +277,13 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
   <div class="main">
     <div class="calendar-area">
       <div id="calBody"></div>
-      <div class="bottom-cards">
+      <div class="bottom-cards" style="grid-template-columns:1fr">
         <div class="side-card">
           <h3><i class="ti ti-shopping-cart"></i> Boodschappen</h3>
           <div id="shoppingList"></div>
           <div style="display:flex;gap:5px;margin-top:10px">
             <input type="text" id="shopInput" placeholder="bijv. Pindakaas" style="flex:1;padding:7px 9px;border-radius:9px;border:1px solid var(--border2);background:var(--bg);font-size:11px;color:var(--text);outline:none" onkeydown="if(event.key==='Enter')addShopItem()"/>
             <button onclick="addShopItem()" style="border:none;background:var(--accent);color:#fff;border-radius:9px;padding:0 11px;cursor:pointer"><i class="ti ti-plus"></i></button>
-          </div>
-        </div>
-        <div class="side-card">
-          <h3><i class="ti ti-brand-spotify" style="color:#1db954"></i> Muziek <span id="spotifyUser" style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:auto;font-size:9px;color:var(--muted)"></span></h3>
-          <div id="spotifyContent">
-            <button onclick="connectSpotify()" style="width:100%;border:1.5px solid #1db954;color:#1db954;background:none;border-radius:10px;padding:9px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-brand-spotify"></i> Koppel Spotify</button>
           </div>
         </div>
       </div>
@@ -324,6 +318,14 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
       <button class="hdr-btn" onclick="hueFetchAll()" title="Verversen"><i class="ti ti-refresh"></i></button>
       <button class="hdr-btn" onclick="openHueSetup()" title="Hue instellingen"><i class="ti ti-settings"></i></button>
     </header>
+    <div style="padding:16px 18px 0">
+      <div class="side-card" style="margin-bottom:0">
+        <h3 style="font-size:11px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em"><i class="ti ti-brand-spotify" style="color:#1db954;font-size:14px"></i> Muziek <span id="spotifyUser" style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:auto;font-size:9px;color:var(--muted)"></span></h3>
+        <div id="spotifyContent">
+          <button onclick="connectSpotify()" style="width:100%;border:1.5px solid #1db954;color:#1db954;background:none;border-radius:10px;padding:9px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-brand-spotify"></i> Koppel Spotify</button>
+        </div>
+      </div>
+    </div>
     <div class="smart-body" id="smartBody"></div>
   </div>
 </section>
@@ -2066,7 +2068,7 @@ window.goPage=function(n){
   document.getElementById('pager').classList.toggle('p1',currentPage===1);
   var dots=document.querySelectorAll('#pageDots .pd');
   dots.forEach(function(d,i){ d.classList.toggle('on',i===currentPage); });
-  if(currentPage===1) hueFetchAll();
+  if(currentPage===1){ hueFetchAll(); if(typeof updateNowPlaying==='function') updateNowPlaying(); }
 };
 (function(){
   var x0=null,y0=null,t0=0,tracking=false;
