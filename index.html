@@ -231,6 +231,14 @@ header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 
 .swatch:hover{transform:scale(1.12)}
 .smart-placeholder{background:var(--card);border:1px dashed var(--border2);border-radius:16px;padding:16px;display:flex;align-items:center;gap:13px;opacity:.85}
 .smart-placeholder .p-icon{width:40px;height:40px;border-radius:11px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.zone-open{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer}
+.zone-open .chev{color:var(--muted2);font-size:18px;flex-shrink:0}
+.scene-row{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 10px}
+.scene-chip{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:var(--card2);border:1px solid var(--border2);font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s}
+.scene-chip:hover{border-color:var(--accent)}
+.scene-chip i{font-size:14px;color:var(--abel-dark)}
+.smart-back{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;padding:4px 2px 10px}
+.smart-back:hover{color:var(--text)}
 </style>
 </head>
 <body>
@@ -2087,7 +2095,8 @@ window.goPage=function(n){
 })();
 
 // ── Slimme apparaten: Philips Hue ──
-var hue = {ip:null, user:null, lights:{}, groups:{}};
+var hue = {ip:null, user:null, lights:{}, groups:{}, scenes:{}};
+var smartView = {level:'overview', gid:null};
 var huePollTimer=null;
 function hueBase(){ return 'http://'+hue.ip+'/api'; }
 function hueConnected(){ return !!(hue.ip && hue.user); }
@@ -2137,6 +2146,8 @@ async function hueFetchAll(){
     if(r.ok){ hue.lights=await r.json()||{}; }
     var g=await fetch(hueBase()+'/'+hue.user+'/groups');
     if(g.ok){ hue.groups=await g.json()||{}; }
+    var s=await fetch(hueBase()+'/'+hue.user+'/scenes');
+    if(s.ok){ hue.scenes=await s.json()||{}; }
     renderSmart();
     if(currentPage===1){ if(huePollTimer)clearInterval(huePollTimer); huePollTimer=setInterval(function(){ if(currentPage===1&&document.visibilityState==='visible') hueFetchAll(); },20000); }
   }catch(e){ renderSmart(true); }
@@ -2183,17 +2194,45 @@ function lightRow(id){
     '<div class="sw'+(on?' on':'')+'" onclick="hueToggleLight(\''+id+'\','+(!on)+')"></div></div>';
   return h;
 }
-function roomCard(rm){
-  var lightsOn=rm.lights.filter(function(l){return hue.lights[l]&&hue.lights[l].state.on;}).length;
-  var anyOn=lightsOn>0;
-  var h='<div class="room-card"><div class="room-hdr"><div class="r-icon"><i class="ti ti-'+(rm.icon||'home')+'"></i></div>'+
-    '<div style="flex:1;min-width:0"><div class="r-name">'+rm.name+'</div><div class="r-count">'+lightsOn+' van '+rm.lights.length+' aan</div></div>';
-  if(rm.gid!=null){ h+='<div class="sw'+(anyOn?' on':'')+'" onclick="hueToggleRoom(\''+rm.gid+'\','+(!anyOn)+')"></div>'; }
-  h+='</div>';
-  rm.lights.forEach(function(l){ h+=lightRow(l); });
-  h+='</div>';
-  return h;
+// Zones en kamers als één lijst
+function hueZones(){
+  var zones=[];
+  Object.keys(hue.groups||{}).forEach(function(gid){
+    var g=hue.groups[gid];
+    if(g&&(g.type==='Room'||g.type==='Zone')&&g.lights&&g.lights.length){
+      zones.push({gid:gid,name:g.name,type:g.type,lights:g.lights,icon:g.type==='Zone'?'stack-2':'home-2'});
+    }
+  });
+  return zones;
 }
+// Scènes die bij een groep horen
+function scenesForGroup(gid,groupLights){
+  var out=[];
+  Object.keys(hue.scenes||{}).forEach(function(sid){
+    var sc=hue.scenes[sid]; if(!sc)return;
+    var match = (sc.group && sc.group===gid) ||
+                (!sc.group && sc.lights && sc.lights.length && sc.lights.every(function(l){return groupLights.indexOf(l)>=0;}));
+    if(match) out.push({sid:sid,name:sc.name||'Scène'});
+  });
+  return out;
+}
+// Overzichtskaart per zone (tik om te openen)
+function zoneCard(z){
+  var lightsOn=z.lights.filter(function(l){return hue.lights[l]&&hue.lights[l].state.on;}).length;
+  var anyOn=lightsOn>0;
+  return '<div class="room-card"><div class="room-hdr">'+
+      '<div class="zone-open" onclick="openZone(\''+z.gid+'\')">'+
+        '<div class="r-icon"><i class="ti ti-'+z.icon+'"></i></div>'+
+        '<div style="flex:1;min-width:0"><div class="r-name">'+z.name+'</div><div class="r-count">'+lightsOn+' van '+z.lights.length+' aan · tik voor lampen &amp; scènes</div></div>'+
+        '<i class="ti ti-chevron-right chev"></i>'+
+      '</div>'+
+      '<div class="sw'+(anyOn?' on':'')+'" onclick="event.stopPropagation();hueToggleRoom(\''+z.gid+'\','+(!anyOn)+')"></div>'+
+    '</div></div>';
+}
+window.openZone=function(gid){ smartView={level:'detail',gid:gid}; renderSmart(); };
+window.backToZones=function(){ smartView={level:'overview',gid:null}; renderSmart(); };
+window.hueScene=function(gid,sid){ huePut('/groups/'+gid+'/action',{scene:sid}); toast('Scène toegepast'); setTimeout(hueFetchAll,900); };
+
 function renderSmart(errored){
   renderSmartStatus(errored);
   var el=document.getElementById('smartBody'); if(!el)return;
@@ -2202,21 +2241,43 @@ function renderSmart(errored){
       '<p style="font-size:12px;color:var(--muted);line-height:1.7">Verbind je Hue Bridge om de lampen hier te bedienen. Druk op de ronde knop op de Bridge en tik dan op Koppelen.</p>'+
       '<button class="btn-save" style="width:100%;margin-top:12px" onclick="openHueSetup()"><i class="ti ti-link"></i> Hue koppelen</button></div>'+
       smartPlaceholders();
+    smartView={level:'overview',gid:null};
     return;
   }
-  var used={}, rooms=[];
-  Object.keys(hue.groups||{}).forEach(function(gid){
-    var g=hue.groups[gid];
-    if(g&&(g.type==='Room'||g.type==='Zone')&&g.lights&&g.lights.length){
-      rooms.push({gid:gid,name:g.name,lights:g.lights,icon:'home-2'});
-      g.lights.forEach(function(l){used[l]=true;});
+  // Detailweergave van één zone: losse lampen + scènes
+  if(smartView.level==='detail' && smartView.gid && hue.groups[smartView.gid]){
+    var g=hue.groups[smartView.gid], gid=smartView.gid;
+    var gl=g.lights||[];
+    var anyOn=gl.some(function(l){return hue.lights[l]&&hue.lights[l].state.on;});
+    var scenes=scenesForGroup(gid,gl);
+    var h='<button class="smart-back" onclick="backToZones()"><i class="ti ti-chevron-left"></i> Alle zones</button>';
+    h+='<div class="room-card" style="max-width:640px;margin:6px auto 0">';
+    h+='<div class="room-hdr"><div class="r-icon"><i class="ti ti-'+(g.type==="Zone"?"stack-2":"home-2")+'"></i></div>'+
+        '<div style="flex:1;min-width:0"><div class="r-name">'+g.name+'</div><div class="r-count">'+gl.length+' lampen</div></div>'+
+        '<div class="sw'+(anyOn?' on':'')+'" onclick="hueToggleRoom(\''+gid+'\','+(!anyOn)+')"></div></div>';
+    if(scenes.length){
+      h+='<div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 2px">Scènes</div>';
+      h+='<div class="scene-row">'+scenes.map(function(s){return '<div class="scene-chip" onclick="hueScene(\''+gid+'\',\''+s.sid+'\')"><i class="ti ti-sparkles"></i>'+s.name+'</div>';}).join('')+'</div>';
     }
-  });
+    h+='<div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:4px 0 2px">Lampen</div>';
+    gl.forEach(function(l){ h+=lightRow(l); });
+    h+='</div>';
+    el.innerHTML=h;
+    return;
+  }
+  // Overzicht: alle zones/kamers
+  var zones=hueZones();
+  var used={}; zones.forEach(function(z){ z.lights.forEach(function(l){used[l]=true;}); });
   var rest=Object.keys(hue.lights||{}).filter(function(l){return !used[l];});
   var h='<div class="smart-grid">';
-  if(!rooms.length && !rest.length){ h+='<p style="font-size:12px;color:var(--muted);font-style:italic">Geen lampen gevonden op de Bridge.</p>'; }
-  rooms.forEach(function(rm){ h+=roomCard(rm); });
-  if(rest.length){ h+=roomCard({gid:null,name:'Overige lampen',lights:rest,icon:'bulb'}); }
+  if(!zones.length && !rest.length){ h+='<p style="font-size:12px;color:var(--muted);font-style:italic">Geen lampen gevonden op de Bridge.</p>'; }
+  zones.forEach(function(z){ h+=zoneCard(z); });
+  if(rest.length){
+    h+='<div class="room-card"><div class="room-hdr"><div class="r-icon"><i class="ti ti-bulb"></i></div>'+
+       '<div style="flex:1;min-width:0"><div class="r-name">Overige lampen</div><div class="r-count">'+rest.length+' lampen buiten een zone</div></div></div>';
+    rest.forEach(function(l){ h+=lightRow(l); });
+    h+='</div>';
+  }
   h+='</div>';
   h+=smartPlaceholders();
   el.innerHTML=h;
